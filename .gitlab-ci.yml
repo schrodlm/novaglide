@@ -1,0 +1,18 @@
+# Official language image. Look for the different tagged releases at:
+# https://hub.docker.com/r/library/python/tags/
+
+#commands to run in the Docker container before starting each job.
+
+image: "python:3.8.18" 
+before_script:
+  - python --version
+  - pip install -r requirements.txt
+
+stages:
+  - Static Analysis
+  - Test
+  
+pylint:
+  stage: Static Analysis
+  script:
+  - pylint --disable=R,C src/*.py
