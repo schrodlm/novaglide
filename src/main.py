@@ -50,7 +50,7 @@ class Ball:
 
 
 def checkCollision(p, b):
-    return p.position.distance_to(b.position) < max(b.size,p.size)
+    return p.position.distance_to(b.position) < b.size
 
 
 # -------------------------- MAIN-----------------------------------
