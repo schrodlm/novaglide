@@ -18,10 +18,21 @@ class Player:
     def __init__(self, x, y):
         self.position = Vector2(x, y)
         self.size = 40
-
+        self.future_position = Vector2(x, y)
+        print(self.future_position)
     def move(self, dx, dy):
-        self.position += dx, dy
-
+        print("future position:",self.future_position)
+        print("position:",self.position)
+        self.future_position += dx,dy
+        print("future position:",self.future_position)
+        print("position:",self.position)
+        if self.future_position.x > 0 and self.future_position.x < WIDTH and self.future_position.y > 0 and self.future_position.y < HEIGHT:
+            self.position += dx,dy
+            
+        self.future_position = self.position.copy()
+        print("future position:",self.future_position)
+        print("position:",self.position)
+            
     def draw(self):
         pygame.draw.circle(SCREEN, "red", self.position, self.size)
 
