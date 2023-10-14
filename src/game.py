@@ -18,9 +18,10 @@ def checkCollision(p, b):
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 dt = 0
-player = Player(settings.WIDTH // 2, settings.HEIGHT // 2)
-ball = Ball(100, 100)
 
+
+player = Player(20,20)
+ball = Ball(100,100)
 
 #main loop
 running = True
@@ -31,18 +32,27 @@ while running:
             running = False
 
     screen.fill("purple")
-    player.draw()
-    ball.draw()
-    
-    if checkCollision(player, ball):
-        ball.speed = Vector2(8, 8)
 
-    ball.checkAndHandleRebound()
-    # moving the ball
-    ball.move()
-    # moving the player
-    pygame.display.flip()
     dt = clock.tick(60) / 1000
-    player.update(dt)    
+    player.update(dt)
+    ball.update()
+
+    if pygame.sprite.collide_circle(player,ball) :
+        # 1. Calculate the collision normal
+        collision_normal = ball.rect.center - Vector2(player.rect.center)
+        collision_normal.normalize_ip()  # Normalize the vector to have a magnitude of 1
+    
+        # 2. Determine the new speed of the ball
+        speed_magnitude = 20  # You can adjust this value as needed
+        ball.speed = collision_normal * speed_magnitude
+
+    #drawing sprites on screen    
+    screen.blit(player.image,player.rect)
+    screen.blit(ball.image, ball.rect)
+
+
+
+    pygame.display.flip()
+      
 
 pygame.quit()
