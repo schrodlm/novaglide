@@ -5,7 +5,6 @@ COLOR_ACTIVE = pygame.Color('red')
 FONT = pygame.font.Font(None, 32)
 
 class InputBox:
-
     def __init__(self, x, y, w, h, hide, text=''):
         self.rect = pygame.Rect(x, y, w, h)
         self.color = COLOR_INACTIVE
@@ -40,6 +39,7 @@ class InputBox:
                 else:
                     stars = "*" * len(self.text)
                     self.txt_surface = FONT.render(stars, True, self.color)
+
     def update(self):
         # Resize the box if the text is too long.
         width = max(400, self.txt_surface.get_width()+10)
