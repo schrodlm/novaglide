@@ -2,7 +2,6 @@ import pygame
 from pygame import Vector2
 from player import Player
 from ball import Ball
-import settings
 
 # Initialize game
 pygame.init()
