@@ -9,12 +9,12 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 WIDTH, HEIGHT = 1280, 720
 # Set up display
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
-BG = pygame.image.load("background.jpg")
-BUTTON_IMAGE = pygame.image.load("buttton_image.png")
+BG = pygame.image.load("./../resources/background.jpg")
+BUTTON_IMAGE = pygame.image.load("./../resources/buttton_image.png")
 user_login = []
 
 def get_font(size):
-    return pygame.font.Font("Lato-Medium.ttf", size)
+    return pygame.font.Font("./../resources/Lato-Medium.ttf", size)
 
 
 def log_in_screen():
