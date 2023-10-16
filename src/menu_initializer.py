@@ -35,6 +35,26 @@ class GameInitializer:
         self.BACK_BUTTON = Button(image=self.BACK_BUTTON_IMAGE, pos=(70, 50),
                              text_input="", font=self.get_font(40), base_color=(133, 88, 255), hovering_color="aqua")      
         self.running = True
+        self.WOODEN = self.get_font(25).render(
+                    "wooden", True, ("aqua"))
+        self.IRON = self.get_font(25).render(
+                    "IRON", True, ("aqua"))
+        self.BRONZE = self.get_font(25).render(
+                    "BRONZE", True, ("aqua"))
+        self.SILVER = self.get_font(25).render(
+                    "SILVER", True, ("aqua"))
+        self.GOLD = self.get_font(25).render(
+                    "GOLD", True, ("aqua"))
+        self.CHALLENGER = self.get_font(25).render(
+                    "CHALLENGER", True, ("aqua"))
+
+        
+        
+    def draw_ranked_names(self,names):
+        xs = [30,235,385,610,840,1010]
+        ys = [440,430,420,410,400,390]
+        for name, x, y in zip(names, xs, ys):
+            self.SCREEN.blit(name, (x,y))
     def run_ranking(self):
         if self.ranking_initialized:
             while self.running:
@@ -48,7 +68,7 @@ class GameInitializer:
                 #draw button on the screen
                 self.BACK_BUTTON.change_color(MOUSE_POS)
                 self.BACK_BUTTON.update(self.SCREEN)
-
+                self.draw_ranked_names([self.WOODEN, self.IRON, self.BRONZE, self.SILVER, self.GOLD, self.CHALLENGER])
                 for event in pygame.event.get():
                     # closing the game with mouse
                     if event.type == pygame.QUIT:
@@ -131,6 +151,11 @@ class GameInitializer:
                                     text_input="", font=self.get_font(40), base_color=(133, 88, 255), hovering_color="aqua")    
         self.SETTINGS_BUTTON = Button(image=None, pos=(640, 580),
                                     text_input="Settings", font=self.get_font(40), base_color="black", hovering_color="aqua")
+        self.LOGGED_USER_TEXT = self.get_font(40).render(
+                    self.user_credentials[0], True, ((49, 207, 160)))
+
+        self.MAIN_MENU_TEXT = self.get_font(100).render(
+                    "NOVAGLIDE", True, "black")
 
         self.running = True
     #updating all buttons at once
@@ -147,15 +172,11 @@ class GameInitializer:
                 MOUSE_POS = pygame.mouse.get_pos()
                 
 
-                LOGGED_USER_TEXT = self.get_font(40).render(
-                    self.user_credentials[0], True, ((49, 207, 160)))
 
-                MAIN_MENU_TEXT = self.get_font(100).render(
-                    "NOVAGLIDE", True, "black")
-                LOG_IN_RECT = MAIN_MENU_TEXT.get_rect(center=(640, 150))
+                self.LOG_IN_RECT = self.MAIN_MENU_TEXT.get_rect(center=(640, 150))
                 
-                self.SCREEN.blit(LOGGED_USER_TEXT, (15,15))
-                self.SCREEN.blit(MAIN_MENU_TEXT, LOG_IN_RECT)
+                self.SCREEN.blit(self.LOGGED_USER_TEXT, (15,15))
+                self.SCREEN.blit(self.MAIN_MENU_TEXT, self.LOG_IN_RECT)
 
                 #update all buttons
                 self.update_menu_buttons(buttons = [self.PLAY_1V1_BUTTON, self.PLAY_2V2_BUTTON, 
@@ -175,6 +196,7 @@ class GameInitializer:
                         if self.SETTINGS_BUTTON.check_for_input(MOUSE_POS):
                             print("Settings selected")
                         if self.BACK_BUTTON.check_for_input(MOUSE_POS):
+                            self.user_credentials = []
                             self.init_log_in()
                             self.run_log_in()
                         if self.RANKED_BUTTON.check_for_input(MOUSE_POS):
