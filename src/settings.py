@@ -1,9 +1,4 @@
-import pygame
+#TODO: Delete this class but for now it stays
 
-# Screen dimensions
-WIDTH, HEIGHT = 1280, 720
-SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
-
-
-# Set up display
-pygame.display.set_caption("Novaglide")
+HEIGHT = 720
+WIDTH = 1280

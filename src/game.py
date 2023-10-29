@@ -1,57 +1,100 @@
 import pygame
-from pygame import Vector2
+
+from pygame.locals import *
+import sys
+
 from player import Player
 from ball import Ball
+from pygame import Vector2
+from base_menu import MainMenu, OptionsMenu, CreditsMenu
 
-# Initialize game
-pygame.init()
+class Game():
+    def __init__(self):
+        pygame.init()
+        pygame.display.set_caption('Novaglide')
 
+        self.running, self.playing = True,False
+        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
+        self.WIDTH, self.HEIGHT = 1280, 720
 
+        self.clock = pygame.time.Clock()
+        self.dt = 0
+        self.last_tick = pygame.time.get_ticks()
+        self.screen_res = [self.WIDTH, self.HEIGHT]
 
+        self.display = pygame.Surface(self.screen_res)
+        self.screen = pygame.display.set_mode(self.screen_res, pygame.HWSURFACE, 32)
 
-def checkCollision(p, b):
-    return p.position.distance_to(b.position) < max(b.size,p.size)
+        self.entities = pygame.sprite.Group()
+        self.solids = pygame.sprite.Group()
 
+        self.player = Player(20,20)
+        self.ball = Ball(100,100)
+        
+        self.entities.add(self.solids)
+        self.entities.add(self.player)
+        self.entities.add(self.ball)
 
-#setup
-screen = pygame.display.set_mode((1280, 720))
-clock = pygame.time.Clock()
-dt = 0
+        self.clock.tick(60)
 
+        self.main_menu = MainMenu(self)
+        self.options_menu = OptionsMenu(self)
+        self.credits_menu = CreditsMenu(self)
 
-player = Player(20,20)
-ball = Ball(100,100)
+        self.curr_menu = MainMenu(self)
+            
+    def game_loop(self):
 
-#main loop
-running = True
+        while self.playing:
+        # main game loop
+            self.check_events()
+        
+            self.Tick()
+            self.Draw()
+            self.reset_keys()
 
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+    def reset_keys(self):
+        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
 
-    screen.fill("purple")
+    def check_events(self):
+        # the main event loop, detects keypresses
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.START_KEY = True
+                if event.key == pygame.K_BACKSPACE:
+                    self.BACK_KEY = True
+                if event.key == pygame.K_DOWN:
+                    self.DOWN_KEY = True
+                if event.key == pygame.K_UP:
+                    self.UP_KEY = True
 
-    dt = clock.tick(60) / 1000
-    player.update(dt)
-    ball.update()
+    def Tick(self):
+        self.ttime = self.clock.tick()
+        self.mpos = pygame.mouse.get_pos()
+        self.keys_pressed = pygame.key.get_pressed()
 
-    if pygame.sprite.collide_circle(player,ball) :
-        # 1. Calculate the collision normal
-        collision_normal = ball.rect.center - Vector2(player.rect.center)
-        collision_normal.normalize_ip()  # Normalize the vector to have a magnitude of 1
-    
-        # 2. Determine the new speed of the ball
-        speed_magnitude = 20  # You can adjust this value as needed
-        ball.speed = collision_normal * speed_magnitude
+    def Draw(self):
+        self.display.fill((150,150,150))
+        if pygame.sprite.collide_circle(self.player,self.ball) :
+            # 1. Calculate the collision normal
+            collision_normal = self.ball.rect.center - Vector2(self.player.rect.center)
+            collision_normal.normalize_ip()  # Normalize the vector to have a magnitude of 1
+        
+            # 2. Determine the new speed of the ball
+            speed_magnitude = 20  # You can adjust this value as needed
+            self.ball.speed = collision_normal * speed_magnitude
+        
+        
+        self.dt = self.clock.tick(60) / 1000
+        self.player.update(self.dt)
+        self.ball.update()
+        
+        for e in self.entities: #update blocks etc.
+            self.display.blit(e.image, e.rect)
 
-    #drawing sprites on screen    
-    screen.blit(player.image,player.rect)
-    screen.blit(ball.image, ball.rect)
-
-
-
-    pygame.display.flip()
-      
-
-pygame.quit()
+        self.screen.blit(self.display, (0,0))
+        pygame.display.update()
