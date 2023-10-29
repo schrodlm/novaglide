@@ -6,25 +6,22 @@ import sys
 from player import Player
 from ball import Ball
 from pygame import Vector2
-import utilities
-
 
 class Game():
     def __init__(self):
         pygame.init()
-
         pygame.display.set_caption('Novaglide')
 
         self.running, self.playing = True,False
 
-        
+        WIDTH, HEIGHT = 1280, 720
 
         self.clock = pygame.time.Clock()
         self.dt = 0
         self.last_tick = pygame.time.get_ticks()
-        self.screen_res = [1280, 720]
+        self.screen_res = [WIDTH, HEIGHT]
 
-        self.display = pygame.Surface((1280,720))
+        self.display = pygame.Surface(self.screen_res)
         self.screen = pygame.display.set_mode(self.screen_res, pygame.HWSURFACE, 32)
 
         self.entities = pygame.sprite.Group()
