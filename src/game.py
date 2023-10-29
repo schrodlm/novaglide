@@ -6,7 +6,7 @@ import sys
 from player import Player
 from ball import Ball
 from pygame import Vector2
-from base_menu import MainMenu
+from base_menu import MainMenu, OptionsMenu, CreditsMenu
 
 class Game():
     def __init__(self):
@@ -37,6 +37,10 @@ class Game():
 
         self.clock.tick(60)
 
+        self.main_menu = MainMenu(self)
+        self.options_menu = OptionsMenu(self)
+        self.credits_menu = CreditsMenu(self)
+
         self.curr_menu = MainMenu(self)
             
     def game_loop(self):
@@ -47,6 +51,7 @@ class Game():
         
             self.Tick()
             self.Draw()
+            self.reset_keys()
 
     def reset_keys(self):
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
@@ -57,6 +62,15 @@ class Game():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.START_KEY = True
+                if event.key == pygame.K_BACKSPACE:
+                    self.BACK_KEY = True
+                if event.key == pygame.K_DOWN:
+                    self.DOWN_KEY = True
+                if event.key == pygame.K_UP:
+                    self.UP_KEY = True
 
     def Tick(self):
         self.ttime = self.clock.tick()

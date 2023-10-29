@@ -1,4 +1,4 @@
 #TODO: Delete this class but for now it stays
 
-HEIGHT = 1280
-WIDTH = 720
+HEIGHT = 720
+WIDTH = 1280
