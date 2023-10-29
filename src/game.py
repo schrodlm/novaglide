@@ -6,6 +6,7 @@ import sys
 from player import Player
 from ball import Ball
 from pygame import Vector2
+from base_menu import MainMenu
 
 class Game():
     def __init__(self):
@@ -13,13 +14,13 @@ class Game():
         pygame.display.set_caption('Novaglide')
 
         self.running, self.playing = True,False
-
-        WIDTH, HEIGHT = 1280, 720
+        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
+        self.WIDTH, self.HEIGHT = 1280, 720
 
         self.clock = pygame.time.Clock()
         self.dt = 0
         self.last_tick = pygame.time.get_ticks()
-        self.screen_res = [WIDTH, HEIGHT]
+        self.screen_res = [self.WIDTH, self.HEIGHT]
 
         self.display = pygame.Surface(self.screen_res)
         self.screen = pygame.display.set_mode(self.screen_res, pygame.HWSURFACE, 32)
@@ -36,6 +37,7 @@ class Game():
 
         self.clock.tick(60)
 
+        self.curr_menu = MainMenu(self)
             
     def game_loop(self):
 
@@ -46,7 +48,8 @@ class Game():
             self.Tick()
             self.Draw()
 
-
+    def reset_keys(self):
+        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
 
     def check_events(self):
         # the main event loop, detects keypresses
@@ -54,13 +57,6 @@ class Game():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN:
-                if event.key == K_RETURN:
-                    self.reset()
-                    self.maploader.load(2)
-                    
-                if event.key == K_SPACE:
-                    self.player.jump()
 
     def Tick(self):
         self.ttime = self.clock.tick()
