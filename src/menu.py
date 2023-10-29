@@ -4,7 +4,7 @@ import pygame
 import sys
 import os
 import settings
-
+import utilities 
 class Menu():
     
     def __init__(self): 
@@ -14,9 +14,6 @@ class Menu():
         self.button_image = pygame.image.load("./../resources/buttton_image.png")
         self.user_login = []
 
-    def get_font(self,size):
-        return pygame.font.Font("./../resources/Lato-Medium.ttf", size)
-
 
     def log_in_screen(self):
         pygame.display.set_caption("Log in")
@@ -24,7 +21,7 @@ class Menu():
 
         # log in button
         log_in_btn = Button(image=None, pos=(640, 460),
-                            text_input="LOG IN", font=self.get_font(75), base_color="black", hovering_color="aqua")
+                            text_input="LOG IN", font=utilities.get_font(75), base_color="black", hovering_color="aqua")
 
         # initializing input boxes for username and password
         username_btn = InputBox(440, 200, 400, 70, False)
@@ -39,7 +36,7 @@ class Menu():
             settings.SCREEN.blit(self.background, (0, 0))
 
             # draw log in text
-            login_txt = self.get_font(45).render(
+            login_txt = utilities.get_font(45).render(
                 "Login with your nickname and password", True, "black")
             login_rect = login_txt.get_rect(center=(640, 150))
             settings.SCREEN.blit(login_txt, login_rect)
@@ -78,21 +75,21 @@ class Menu():
 
         running = True
         one_vs_one_btn = Button(image=self.button_image, pos=(640, 300),
-                                text_input="PLAY 1v1", font=self.get_font(50), base_color="black", hovering_color="aqua")
+                                text_input="PLAY 1v1", font=utilities.get_font(50), base_color="black", hovering_color="aqua")
         two_vs_two_btn = Button(image=self.button_image, pos=(640, 450),
-                                text_input="PLAY 2v2", font=self.get_font(50), base_color="black", hovering_color="aqua")
+                                text_input="PLAY 2v2", font=utilities.get_font(50), base_color="black", hovering_color="aqua")
         settings_btn = Button(image=self.button_image, pos=(640, 600),
-                                text_input="SETTINGS", font=self.get_font(50), base_color="black", hovering_color="aqua")
+                                text_input="SETTINGS", font=utilities.get_font(50), base_color="black", hovering_color="aqua")
         
         while running:
             settings.SCREEN.fill("black")
             settings.SCREEN.blit(self.background, (0, 0))
             mouse_pos = pygame.mouse.get_pos()
-            logged_user_txt = self.get_font(40).render(
+            logged_user_txt = utilities.get_font(40).render(
                 self.user_login[0], True, "green") 
             logged_usr_rect = logged_user_txt.get_rect(center=(100, 50))
 
-            main_menu_txt = self.get_font(100).render(
+            main_menu_txt = utilities.get_font(100).render(
                 "Main menu", True, "black")
             login_rect = main_menu_txt.get_rect(center=(640, 150))
             settings.SCREEN.blit(logged_user_txt, logged_usr_rect)
