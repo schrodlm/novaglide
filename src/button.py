@@ -1,5 +1,7 @@
-class Button():
+import pygame
+class Button(pygame.sprite.Sprite):
     def __init__(self, image, pos, text_input, font, base_color, hovering_color):
+        pygame.sprite.Sprite.__init__(self)
         self.image = image
         self.x_pos = pos[0]
         self.y_pos = pos[1]
@@ -17,12 +19,12 @@ class Button():
             screen.blit(self.image, self.rect)
         screen.blit(self.text, self.text_rect)
 
-    def checkForInput(self, position):
+    def check_for_input(self, position):
         if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
             return True
         return False
 
-    def changeColor(self, position):
+    def change_color(self, position):
         if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
             self.text = self.font.render(self.text_input, True, self.hovering_color)
         else:
