@@ -7,8 +7,7 @@ class Menu():
     def __init__(self,game):
         self.game = game
         self.run_display = True
-        self.user_credentials = []
-#TODO: delete
+        #TODO: delete
         self.mid_w, self.mid_h = self.game.WIDTH/2, self.game.HEIGHT/2
         self.cursor_rect = pygame.Rect(0,0,20,20)
         self.cursor_offset = - 100
@@ -33,6 +32,8 @@ class LogInMenu(Menu):
         self.input_boxes = [self.username_input, self.password_input]
         
     def display_menu(self):
+        self.username_input.text = ""
+        self.password_input.text = ""
         self.run_display = True
         while self.run_display:
             self.game.Tick()
@@ -43,7 +44,7 @@ class LogInMenu(Menu):
             utilities.draw_text("Login with your nickname and password", 30, 640, 150, self.game.display,utilities.BLACK)
             self.log_in_button.change_color(self.game.mpos)
             self.log_in_button.update(self.game.display)
-            self.game.check_events(name = "login_screen")     
+            self.game.check_events(name = "login_screen")
             # draw input boxes on the screen
                 
             self.blit_screen()
@@ -80,7 +81,7 @@ class MainMenu(Menu):
         #creating texts and their rectangles
 
         self.logged_user_text = utilities.get_font(40).render(
-                    "autobus", True, ((49, 207, 160)))
+                    self.game.user_credentials.get("name"), True, ((49, 207, 160)))
         self.logged_user_rect = self.logged_user_text.get_rect(topleft=(15,15))
 
         self.main_menu_text = utilities.get_font(100).render(
@@ -95,6 +96,12 @@ class MainMenu(Menu):
             self.game.Tick()
             self.game.display.fill((0,0,0))
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
+            
+            #need to regenerate every time because the name is dynamically changing
+            self.logged_user_text = utilities.get_font(40).render(
+            self.game.user_credentials.get("name"), True, ((49, 207, 160)))
+            self.logged_user_rect = self.logged_user_text.get_rect(topleft=(15,15))
+            
             #draw texts
             self.game.display.blit(self.logged_user_text, self.logged_user_rect)
             self.game.display.blit(self.main_menu_text, self.main_menu_rect)

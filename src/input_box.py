@@ -34,11 +34,11 @@ class InputBox:
                 else:
                     self.text += event.unicode
                 # Re-render the text.
-                if not self.hide:
-                    self.txt_surface = self.font.render(self.text, True, self.color)
-                else:
-                    stars = "*" * len(self.text)
-                    self.txt_surface = self.font.render(stars, True, self.color)
+        if not self.hide:
+            self.txt_surface = self.font.render(self.text, True, self.color)
+        else:
+            stars = "*" * len(self.text)
+            self.txt_surface = self.font.render(stars, True, self.color)
 
 
     def update(self):

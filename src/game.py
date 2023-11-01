@@ -36,6 +36,8 @@ class Game():
         self.entities.add(self.solids)
         self.entities.add(self.player)
         self.entities.add(self.ball)
+        
+        self.user_credentials = {"name":"", "password":""}
 
         self.clock.tick(60)
 
@@ -94,7 +96,8 @@ class Game():
                     if self.main_menu.back_button.check_for_input(self.mpos):
                         self.main_menu.run_display = False
                         self.curr_menu = self.login_menu
-
+                        self.user_credentials = {"name":"", "password":""}
+        
                     if self.main_menu.ranked_button.check_for_input(self.mpos):
                         #TODO: finish 
                         print("ranked selected")
@@ -111,11 +114,10 @@ class Game():
                     sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.login_menu.log_in_button.check_for_input(self.mpos):
-                        self.login_menu.user_credentials.append(self.login_menu.username_input.text)
-                        self.login_menu.user_credentials.append(self.login_menu.password_input.text)
                         self.curr_menu.run_display = False
                         self.curr_menu = self.main_menu
-
+                        self.user_credentials["name"] = self.login_menu.username_input.text
+                        self.user_credentials["password"] = self.login_menu.password_input.text
                 for box in self.login_menu.input_boxes:
                     box.handle_event(event)
             for box in self.login_menu.input_boxes:
