@@ -19,4 +19,4 @@ def get_image(name: str):
             "background_ranked":"./../resources/ranked_background.jpg",
             "ranks":"./../resources/ranked_trophies_lowres.jpg",
             "ranks_frames":"./../resources/icon_ranked_borders.jpg"}
-    return pygame.image.load(paths.get(name))
+    return pygame.image.load(paths.get(name)).convert_alpha()

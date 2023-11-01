@@ -12,8 +12,6 @@ class Menu():
         self.cursor_rect = pygame.Rect(0,0,20,20)
         self.cursor_offset = - 100
 
-
-
     def blit_screen(self):
         self.game.screen.blit(self.game.display,(0,0))
         pygame.display.update()
@@ -44,13 +42,26 @@ class LogInMenu(Menu):
             utilities.draw_text("Login with your nickname and password", 30, 640, 150, self.game.display,utilities.BLACK)
             self.log_in_button.change_color(self.game.mpos)
             self.log_in_button.update(self.game.display)
-            self.game.check_events(name = "login_screen")
+            self.check_events()
             # draw input boxes on the screen
-                
             self.blit_screen()
-
-
-
+            
+    def check_events(self):
+        for event in pygame.event.get():
+            # closing the game with mouse
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.log_in_button.check_for_input(self.game.mpos):
+                    self.run_display = False
+                    self.game.curr_menu = self.game.main_menu
+                    self.game.user_credentials["name"] = self.username_input.text
+                    self.game.user_credentials["password"] = self.password_input.text
+            for box in self.input_boxes:
+                box.handle_event(event)
+        for box in self.input_boxes:
+            box.draw_updated(self.game.display)
 
 class MainMenu(Menu):
     def __init__(self,game):
@@ -106,13 +117,42 @@ class MainMenu(Menu):
             self.game.display.blit(self.logged_user_text, self.logged_user_rect)
             self.game.display.blit(self.main_menu_text, self.main_menu_rect)
             #check all events
-            self.game.check_events(name = "main_menu")
+            self.check_events()
             
             #update all buttons
             for button in self.buttons:
                 button.change_color(self.game.mpos)
             self.buttons.update(self.game.display)
             self.blit_screen()
+            
+    def check_events(self):
+        for event in pygame.event.get():
+            # closing the game with mouse
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.play_1v1_button.check_for_input(self.game.mpos):
+                    self.game.playing = True
+                    self.run_display = False
+                if self.play_2v2_button.check_for_input(self.game.mpos):
+                    #TODO: implement multiplayer
+                    print("2v2 selected")
+                if self.settings_button.check_for_input(self.game.mpos):
+                    self.run_display = False
+                    self.game.curr_menu = self.game.options_menu
+
+                if self.back_button.check_for_input(self.game.mpos):
+                    self.run_display = False
+                    self.game.curr_menu = self.game.login_menu
+                    self.game.user_credentials = {"name":"", "password":""}
+    
+                if self.ranked_button.check_for_input(self.game.mpos):
+                    #TODO: finish 
+                    print("ranked selected")
+                if self.credits_button.check_for_input(self.game.mpos):
+                    self.run_display = False
+                    self.game.curr_menu = self.game.credits_menu
 
 
 
@@ -128,13 +168,12 @@ class OptionsMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.check_events(name = "options_menu")
+            self.check_events()
             self.check_input()
             self.game.display.fill((0,0,0))
             utilities.draw_text('Options', 20, self.game.WIDTH / 2, self.game.HEIGHT/2 - 30, self.game.display)
             utilities.draw_text('Volume', 15, self.volx, self.voly, self.game.display)
             utilities.draw_text('Controls', 15, self.controlsx, self.controlsy, self.game.display)
-
             self.blit_screen()
 
     def check_input(self):
@@ -152,6 +191,21 @@ class OptionsMenu(Menu):
         elif self.game.START_KEY:
             #TODO: Create a volume menu and controls menu
             pass
+    def check_events(self):
+        #TODO: to be changed
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.game.START_KEY = True
+                if event.key == pygame.K_BACKSPACE:
+                    self.game.BACK_KEY = True
+                if event.key == pygame.K_DOWN:
+                    self.game.DOWN_KEY = True
+                if event.key == pygame.K_UP:
+                    self.game.UP_KEY = True
 
 class CreditsMenu(Menu):
     def __init__(self,game):
@@ -160,7 +214,7 @@ class CreditsMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.check_events(name = "credits_menu")
+            self.game.check_events()
             if self.game.START_KEY or self.game.BACK_KEY:
                 self.game.curr_menu = self.game.main_menu
                 self.run_display = False
@@ -169,3 +223,18 @@ class CreditsMenu(Menu):
             utilities.draw_text('Credits', 20, self.game.WIDTH / 2, self.game.HEIGHT/2 - 20, self.game.display)
             utilities.draw_text('TOM B & MAT S', 15, self.game.WIDTH / 2, self.game.HEIGHT/2 + 10, self.game.display)
             self.blit_screen()
+            
+    def check_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.game.START_KEY = True
+                if event.key == pygame.K_BACKSPACE:
+                    self.game.BACK_KEY = True
+                if event.key == pygame.K_DOWN:
+                    self.game.DOWN_KEY = True
+                if event.key == pygame.K_UP:
+                    self.game.UP_KEY = True

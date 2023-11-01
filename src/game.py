@@ -51,7 +51,7 @@ class Game():
     def game_loop(self):
         while self.playing:
         # main game loop
-            self.check_events(name = "game")
+            self.check_events()
             self.Tick()
             self.Draw()
             self.reset_keys()
@@ -59,74 +59,21 @@ class Game():
     def reset_keys(self):
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
 
-    def check_events(self, name: str):
-        if name == "credits_menu" or name == "game":
-            # the main event loop, detects keypresses
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:
-                        self.START_KEY = True
-                    if event.key == pygame.K_BACKSPACE:
-                        self.BACK_KEY = True
-                    if event.key == pygame.K_DOWN:
-                        self.DOWN_KEY = True
-                    if event.key == pygame.K_UP:
-                        self.UP_KEY = True
-        
-        if name == "main_menu":
-            for event in pygame.event.get():
-                # closing the game with mouse
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.main_menu.play_1v1_button.check_for_input(self.mpos):
-                        self.playing = True
-                        self.main_menu.run_display = False
-                    if self.main_menu.play_2v2_button.check_for_input(self.mpos):
-                        #TODO: implement multiplayer
-                        print("2v2 selected")
-                    if self.main_menu.settings_button.check_for_input(self.mpos):
-                        self.main_menu.run_display = False
-                        self.curr_menu = self.options_menu
-
-                    if self.main_menu.back_button.check_for_input(self.mpos):
-                        self.main_menu.run_display = False
-                        self.curr_menu = self.login_menu
-                        self.user_credentials = {"name":"", "password":""}
-        
-                    if self.main_menu.ranked_button.check_for_input(self.mpos):
-                        #TODO: finish 
-                        print("ranked selected")
-                    if self.main_menu.credits_button.check_for_input(self.mpos):
-                        self.main_menu.run_display = False
-                        self.curr_menu = self.credits_menu
-
-                         
-        if name == "login_screen":
-            for event in pygame.event.get():
-                # closing the game with mouse
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.login_menu.log_in_button.check_for_input(self.mpos):
-                        self.curr_menu.run_display = False
-                        self.curr_menu = self.main_menu
-                        self.user_credentials["name"] = self.login_menu.username_input.text
-                        self.user_credentials["password"] = self.login_menu.password_input.text
-                for box in self.login_menu.input_boxes:
-                    box.handle_event(event)
-            for box in self.login_menu.input_boxes:
-                box.draw_updated(self.display)
-            
-        #TODO: to be created
-        if name == "options_menu":
-            ...
-
+    def check_events(self):
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.START_KEY = True
+                if event.key == pygame.K_BACKSPACE:
+                    self.BACK_KEY = True
+                if event.key == pygame.K_DOWN:
+                    self.DOWN_KEY = True
+                if event.key == pygame.K_UP:
+                    self.UP_KEY = True
+    
     
     def Tick(self):
         self.ttime = self.clock.tick()
