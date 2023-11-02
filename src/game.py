@@ -6,7 +6,7 @@ import sys
 from player import Player
 from ball import Ball
 from pygame import Vector2
-from base_menu import MainMenu, OptionsMenu, CreditsMenu
+from base_menu import MainMenu, OptionsMenu, CreditsMenu, LogInMenu
 
 class Game():
     def __init__(self):
@@ -17,6 +17,8 @@ class Game():
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
         self.WIDTH, self.HEIGHT = 1280, 720
 
+        self.mpos = pygame.mouse.get_pos()
+        
         self.clock = pygame.time.Clock()
         self.dt = 0
         self.last_tick = pygame.time.get_ticks()
@@ -34,21 +36,22 @@ class Game():
         self.entities.add(self.solids)
         self.entities.add(self.player)
         self.entities.add(self.ball)
+        
+        self.user_credentials = {"name":"", "password":""}
 
         self.clock.tick(60)
 
         self.main_menu = MainMenu(self)
         self.options_menu = OptionsMenu(self)
         self.credits_menu = CreditsMenu(self)
+        self.login_menu = LogInMenu(self)
 
-        self.curr_menu = MainMenu(self)
-            
+        self.curr_menu = LogInMenu(self)
+
     def game_loop(self):
-
         while self.playing:
         # main game loop
             self.check_events()
-        
             self.Tick()
             self.Draw()
             self.reset_keys()
@@ -57,7 +60,6 @@ class Game():
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
 
     def check_events(self):
-        # the main event loop, detects keypresses
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -71,7 +73,8 @@ class Game():
                     self.DOWN_KEY = True
                 if event.key == pygame.K_UP:
                     self.UP_KEY = True
-
+    
+    
     def Tick(self):
         self.ttime = self.clock.tick()
         self.mpos = pygame.mouse.get_pos()
