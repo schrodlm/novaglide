@@ -1,11 +1,10 @@
-import pygame
-
-import pygame.locals
 import sys
+import pygame
+import pygame.locals
+from pygame import Vector2
 
 from player import Player
 from ball import Ball
-from pygame import Vector2
 from base_menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu
 
 class Game():
@@ -18,7 +17,7 @@ class Game():
         self.WIDTH, self.HEIGHT = 1280, 720
 
         self.mpos = pygame.mouse.get_pos()
-        
+
         self.clock = pygame.time.Clock()
         self.dt = 0
         self.last_tick = pygame.time.get_ticks()
@@ -32,11 +31,11 @@ class Game():
 
         self.player = Player(20,20)
         self.ball = Ball(100,100)
-        
+
         self.entities.add(self.solids)
         self.entities.add(self.player)
         self.entities.add(self.ball)
-        
+
         self.user_credentials = {"name":"", "password":""}
 
         self.clock.tick(60)
@@ -73,16 +72,16 @@ class Game():
                     self.DOWN_KEY = True
                 if event.key == pygame.K_UP:
                     self.UP_KEY = True
-    
-    
+
     def Tick(self):
+        #TODO: přidat i do init? pylint to nefeeluje mimo něj
         self.ttime = self.clock.tick()
         self.mpos = pygame.mouse.get_pos()
         self.keys_pressed = pygame.key.get_pressed()
-        
+ 
     def Check_inputs(self):
         #menu needs to update keyboard and mouse input but should not tick the game clock
-        #maybe just Tick(self,tick_clock = False) and if clause on tick would be better? slower?
+        #write different Tick_menu() without self.ttime?
         self.mpos = pygame.mouse.get_pos()
         self.keys_pressed = pygame.key.get_pressed()
 
@@ -92,16 +91,16 @@ class Game():
             # 1. Calculate the collision normal
             collision_normal = self.ball.rect.center - Vector2(self.player.rect.center)
             collision_normal.normalize_ip()  # Normalize the vector to have a magnitude of 1
-        
+
             # 2. Determine the new speed of the ball
             speed_magnitude = 20  # You can adjust this value as needed
             self.ball.speed = collision_normal * speed_magnitude
-        
-        
+
+
         self.dt = self.clock.tick(60) / 1000
         self.player.update(self.dt)
         self.ball.update()
-        
+
         for e in self.entities: #update blocks etc.
             self.display.blit(e.image, e.rect)
 

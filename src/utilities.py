@@ -37,10 +37,6 @@ def get_map_names(map_value):
     vocab = {"./../resources/rink_bg_1.jpg": "MAP 1" ,"./../resources/rink_bg_2.jpg": "MAP 2","./../resources/rink_bg_3.jpg": "MAP 3"}
     return vocab.get(map_value)
 
-def get_ordered_maps(path):
-    all_maps = ["./../resources/rink_bg_1.jpg", "./../resources/rink_bg_2.jpg", "./../resources/rink_bg_3.jpg"]
-    maps_ordered = [path]
-    for map_path in all_maps:
-        if map_path != path:
-            maps_ordered.append(map_path)
+def get_ordered_maps():
+    maps_ordered = ["./../resources/rink_bg_1.jpg", "./../resources/rink_bg_2.jpg", "./../resources/rink_bg_3.jpg"]
     return maps_ordered
