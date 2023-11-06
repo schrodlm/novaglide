@@ -4,6 +4,9 @@ from input_box import InputBox
 from button import Button
 import sys
 from player import Player
+import tkinter as tk
+from tkinter.filedialog import askopenfilename
+
 class Menu():
     def __init__(self,game):
         self.game = game
@@ -163,28 +166,53 @@ class SettingsMenu(Menu):
         self.music = self.loaded_settings["Music"]
         self.volume = self.loaded_settings["Volume"]
         self.next_volume = self.volume
-        
-        self.map = utilities.get_map_preview(self.loaded_settings["Map"])
+        self.max_map_indx = 2
+        self.map_indx = 0
+        self.next_map_indx = 0
+        self.maps_ordered = utilities.get_ordered_maps(self.loaded_settings["Map"])
+        print(self.maps_ordered)
+        self.map = self.maps_ordered[0]
         self.profile_picture = self.loaded_settings["ProfilePicture"]
         self.controls = self.loaded_settings["Controls"]
         
-        self.default_player = Player(200,self.mid_y,100)
-        
+        self.default_player = Player(200,self.mid_y + 100, 100)
         self.buttons = pygame.sprite.Group()
-        self.volume_button_left_arrow = Button(image=utilities.get_image("left_arrow"), pos=(self.mid_x - 100, 170),
+        
+
+        #music arrows
+        self.music_button_left_arrow = Button(image=utilities.get_image("left_arrow"), pos=(self.mid_x - 100, 170),
                                     text_input="", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
-        self.volume_button_right_arrow = Button(image=utilities.get_image("right_arrow"), pos=(self.mid_x + 100, 170),
+        self.music_button_right_arrow = Button(image=utilities.get_image("right_arrow"), pos=(self.mid_x + 100, 170),
                                     text_input="", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
-        self.change_profile_picture_button = Button(image=None, pos=(self.mid_x, 170),
-                                    text_input="Change profile picture", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
+        
+        #volume arrows
+        self.volume_button_left_arrow = Button(image=utilities.get_image("left_arrow"), pos=(self.mid_x - 100, 310),
+                                    text_input="", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
+        self.volume_button_right_arrow = Button(image=utilities.get_image("right_arrow"), pos=(self.mid_x + 100, 310),
+                                    text_input="", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
+        
+        #controls arrows
+        self.controls_button_left_arrow = Button(image=utilities.get_image("left_arrow"), pos=(self.mid_x - 120, 450),
+                                    text_input="", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
+        self.controls_button_right_arrow = Button(image=utilities.get_image("right_arrow"), pos=(self.mid_x + 120, 450),
+                                    text_input="", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
+        
+        #map arrows
+        self.map_button_left_arrow = Button(image=utilities.get_image("left_arrow"), pos=(980 - 120, 150),
+                                    text_input="", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
+        self.map_button_right_arrow = Button(image=utilities.get_image("right_arrow"), pos=(980 + 120, 150),
+                                    text_input="", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
+        
         
         #Grouping buttons
         self.buttons.add(self.volume_button_left_arrow)
         self.buttons.add(self.volume_button_right_arrow)
-        self.buttons.add(self.change_profile_picture_button)
-
-
-
+        self.buttons.add(self.music_button_left_arrow)
+        self.buttons.add(self.music_button_right_arrow)
+        self.buttons.add(self.controls_button_left_arrow)
+        self.buttons.add(self.controls_button_right_arrow)
+        self.buttons.add(self.map_button_left_arrow)
+        self.buttons.add(self.map_button_right_arrow)
 
 
     def display_menu(self):
@@ -194,33 +222,38 @@ class SettingsMenu(Menu):
             self.check_events()
             self.game.display.fill((0,0,0))
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
+            self.map = self.maps_ordered[self.map_indx]
             #Music settings
             utilities.draw_text("Music", 40, self.mid_x, 100, self.game.display,utilities.BLACK)
             
+            #music settings
             if self.music:
                 utilities.draw_text("ON", 30, self.mid_x, 170, self.game.display)
             else:
                 utilities.draw_text("OFF", 30, self.mid_x, 170, self.game.display)
-            #Volume settings    
-            utilities.draw_text("Volume", 40, self.mid_x, 230, self.game.display,utilities.BLACK)
-            utilities.draw_text(utilities.convert_volume(self.volume), 30, self.mid_x, 300, self.game.display)
-            #Map choice
-            utilities.draw_text("Map", 40, self.mid_x, 370, self.game.display,utilities.BLACK)
             
-            utilities.draw_text(utilities.get_map_names(self.map), 30, self.mid_x, 440, self.game.display)
+            #Volume settings   
+            utilities.draw_text("Volume", 40, self.mid_x, 240, self.game.display,utilities.BLACK)
+            utilities.draw_text(utilities.convert_volume(self.volume), 30, self.mid_x, 310, self.game.display)
+            
+            #Map choice
+            utilities.draw_text("Map", 40, 980, 100, self.game.display,utilities.BLACK)
+            
+            utilities.draw_text(utilities.get_map_names(self.map), 30, 980, 150, self.game.display)
+            self.game.display.blit(pygame.transform.rotate(pygame.image.load(self.map).convert_alpha(), 90), (840, 170))
+            
+            
+            utilities.draw_text("Your skin", 30, 200, 200, self.game.display)
             
             #bliting player skin
-            try:
-                raise Exception
-            except:
-                self.game.display.blit(self.default_player.image, self.default_player.rect)
+            self.game.display.blit(self.default_player.image, self.default_player.rect)
             
-            utilities.draw_text("Controls", 40, self.mid_x, 510, self.game.display,utilities.BLACK)
+            utilities.draw_text("Controls", 40, self.mid_x, 380, self.game.display,utilities.BLACK)
             if self.controls == "wsad":
-                utilities.draw_text("W S A D", 30, self.mid_x, 580, self.game.display)
+                utilities.draw_text("W S A D", 30, self.mid_x, 450, self.game.display)
             if self.controls == "arrows":
-                utilities.draw_text("Arrows", 30, self.mid_x, 580, self.game.display)
-                
+                utilities.draw_text("Arrows", 30, self.mid_x, 450, self.game.display)
+            
             #update all buttons
             for button in self.buttons:
                 button.change_color(self.game.mpos)
@@ -230,7 +263,6 @@ class SettingsMenu(Menu):
 
 
     def check_events(self):
-        #TODO: to be changed
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -245,19 +277,38 @@ class SettingsMenu(Menu):
                 if event.key == pygame.K_UP:
                     self.game.UP_KEY = True
             if event.type == pygame.MOUSEBUTTONDOWN:
+                #music buttons
+                if self.music_button_right_arrow.check_for_input(self.game.mpos) or self.music_button_left_arrow.check_for_input(self.game.mpos):
+                    self.music = not self.music
+
+                #volume changing
                 if self.volume_button_right_arrow.check_for_input(self.game.mpos):
                     self.next_volume = self.volume + 1
-                    print(self.next_volume)
                     if self.next_volume <= 10 and self.next_volume >= 0:
                         self.volume = self.next_volume
-                        print(self.volume)
                 if self.volume_button_left_arrow.check_for_input(self.game.mpos):
                     self.next_volume = self.volume - 1
-                    print(self.next_volume)
                     if self.next_volume <= 10 and self.next_volume >= 0:
                         self.volume = self.next_volume
-                        print(self.volume)
-                    
+
+                #controls changing
+                if self.controls_button_right_arrow.check_for_input(self.game.mpos) or self.controls_button_left_arrow.check_for_input(self.game.mpos):
+                    if self.controls == "wsad":
+                        self.controls = "arrows"
+                    else:
+                        self.controls = "wsad"
+                #change map
+                if self.map_button_right_arrow.check_for_input(self.game.mpos):
+                    self.next_map_indx = self.map_indx + 1
+                    if self.next_map_indx <= self.max_map_indx and self.next_map_indx >= 0:
+                        self.map_indx = self.next_map_indx
+                
+                if self.map_button_left_arrow.check_for_input(self.game.mpos):
+                    self.next_map_indx = self.map_indx - 1
+                    if self.next_map_indx <= self.max_map_indx and self.next_map_indx >= 0:
+                        self.map_indx = self.next_map_indx
+
+                          
 
 class CreditsMenu(Menu):
     def __init__(self,game):
