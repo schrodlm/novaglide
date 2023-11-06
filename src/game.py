@@ -1,12 +1,12 @@
 import pygame
 
-from pygame.locals import *
+import pygame.locals
 import sys
 
 from player import Player
 from ball import Ball
 from pygame import Vector2
-from base_menu import MainMenu, OptionsMenu, CreditsMenu, LogInMenu
+from base_menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu
 
 class Game():
     def __init__(self):
@@ -42,11 +42,11 @@ class Game():
         self.clock.tick(60)
 
         self.main_menu = MainMenu(self)
-        self.options_menu = OptionsMenu(self)
+        self.settings_menu = SettingsMenu(self)
         self.credits_menu = CreditsMenu(self)
         self.login_menu = LogInMenu(self)
 
-        self.curr_menu = LogInMenu(self)
+        self.curr_menu = self.login_menu
 
     def game_loop(self):
         while self.playing:
@@ -61,7 +61,7 @@ class Game():
 
     def check_events(self):
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
@@ -77,6 +77,12 @@ class Game():
     
     def Tick(self):
         self.ttime = self.clock.tick()
+        self.mpos = pygame.mouse.get_pos()
+        self.keys_pressed = pygame.key.get_pressed()
+        
+    def Check_inputs(self):
+        #menu needs to update keyboard and mouse input but should not tick the game clock
+        #maybe just Tick(self,tick_clock = False) and if clause on tick would be better? slower?
         self.mpos = pygame.mouse.get_pos()
         self.keys_pressed = pygame.key.get_pressed()
 

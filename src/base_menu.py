@@ -3,14 +3,13 @@ import utilities
 from input_box import InputBox
 from button import Button
 import sys
+from player import Player
 class Menu():
     def __init__(self,game):
         self.game = game
         self.run_display = True
-        #TODO: delete
-        self.mid_w, self.mid_h = self.game.WIDTH/2, self.game.HEIGHT/2
-        self.cursor_rect = pygame.Rect(0,0,20,20)
-        self.cursor_offset = - 100
+        self.mid_x = self.game.WIDTH // 2
+        self.mid_y = self.game.HEIGHT //2
 
     def blit_screen(self):
         self.game.screen.blit(self.game.display,(0,0))
@@ -21,7 +20,7 @@ class LogInMenu(Menu):
     def __init__(self, game):
         Menu.__init__(self,game)
         # log in button
-        self.log_in_button = Button(image=None, pos=(640, 460),
+        self.log_in_button = Button(image=None, pos=(self.mid_x, 460),
                 text_input="LOG IN", font=utilities.get_font(75), base_color="black", hovering_color="aqua")
         # initializing input boxes for username and password
         self.username_input = InputBox(x = 440, y = 200, w = 400, h = 70, hide = False)
@@ -34,12 +33,12 @@ class LogInMenu(Menu):
         self.password_input.text = ""
         self.run_display = True
         while self.run_display:
-            self.game.Tick()
+            self.game.Check_inputs()
             self.game.display.fill((0,0,0))
             # draw background
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
             #draw instructions
-            utilities.draw_text("Login with your nickname and password", 30, 640, 150, self.game.display,utilities.BLACK)
+            utilities.draw_text("Login with your nickname and password", 30, self.mid_x, 150, self.game.display,utilities.BLACK)
             self.log_in_button.change_color(self.game.mpos)
             self.log_in_button.update(self.game.display)
             self.check_events()
@@ -67,19 +66,19 @@ class MainMenu(Menu):
     def __init__(self,game):
         Menu.__init__(self,game)
         self.buttons = pygame.sprite.Group()
-        self.play_1v1_button = Button(image=None, pos=(640, 300),
+        self.play_1v1_button = Button(image=None, pos=(self.mid_x, 300),
                                     text_input="Play 1v1", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
-        self.play_2v2_button = Button(image=None, pos=(640, 370),
+        self.play_2v2_button = Button(image=None, pos=(self.mid_x, 370),
                                     text_input="Play 2v2", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
-        self.match_history_button = Button(image=None, pos=(640, 440),
+        self.match_history_button = Button(image=None, pos=(self.mid_x, 440),
                                     text_input="Match history", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
-        self.ranked_button = Button(image=None, pos=(640, 510),
+        self.ranked_button = Button(image=None, pos=(self.mid_x, 510),
                                     text_input="Ranked system", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
         self.back_button = Button(image=utilities.get_image("back_arrow"), pos=(70, 100),
                                     text_input="", font=utilities.get_font(40), base_color=(133, 88, 255), hovering_color="aqua")  
-        self.settings_button = Button(image=None, pos=(640, 580),
+        self.settings_button = Button(image=None, pos=(self.mid_x, 580),
                                     text_input="Settings", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
-        self.credits_button = Button(image=None, pos=(640, 650),
+        self.credits_button = Button(image=None, pos=(self.mid_x, 650),
                                     text_input="Credits", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
         #Grouping buttons
         self.buttons.add(self.play_1v1_button)
@@ -97,14 +96,14 @@ class MainMenu(Menu):
 
         self.main_menu_text = utilities.get_font(100).render(
                     "NOVAGLIDE", True, "black")
-        self.main_menu_rect = self.main_menu_text.get_rect(center=(640, 150))
+        self.main_menu_rect = self.main_menu_text.get_rect(center=(self.mid_x, 150))
 
     
     def display_menu(self):
         self.run_display = True
         while self.run_display:
             #tick and fill new background
-            self.game.Tick()
+            self.game.Check_inputs()
             self.game.display.fill((0,0,0))
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
             
@@ -140,7 +139,7 @@ class MainMenu(Menu):
                     print("2v2 selected")
                 if self.settings_button.check_for_input(self.game.mpos):
                     self.run_display = False
-                    self.game.curr_menu = self.game.options_menu
+                    self.game.curr_menu = self.game.settings_menu
 
                 if self.back_button.check_for_input(self.game.mpos):
                     self.run_display = False
@@ -157,40 +156,79 @@ class MainMenu(Menu):
 
 
 
-class OptionsMenu(Menu):
+class SettingsMenu(Menu):
     def __init__(self,game):
         Menu.__init__(self,game)
-        self.state = 'Volume'
-        self.volx, self.voly = self.mid_w, self.mid_h + 20
-        self.controlsx, self.controlsy = self.mid_w, self.mid_h + 40
-        self.cursor_rect.midtop = (self.volx + self.cursor_offset,self.voly)
+        self.loaded_settings = utilities.get_settings()
+        self.music = self.loaded_settings["Music"]
+        self.volume = self.loaded_settings["Volume"]
+        self.next_volume = self.volume
+        
+        self.map = utilities.get_map_preview(self.loaded_settings["Map"])
+        self.profile_picture = self.loaded_settings["ProfilePicture"]
+        self.controls = self.loaded_settings["Controls"]
+        
+        self.default_player = Player(200,self.mid_y,100)
+        
+        self.buttons = pygame.sprite.Group()
+        self.volume_button_left_arrow = Button(image=utilities.get_image("left_arrow"), pos=(self.mid_x - 100, 170),
+                                    text_input="", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
+        self.volume_button_right_arrow = Button(image=utilities.get_image("right_arrow"), pos=(self.mid_x + 100, 170),
+                                    text_input="", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
+        self.change_profile_picture_button = Button(image=None, pos=(self.mid_x, 170),
+                                    text_input="Change profile picture", font=utilities.get_font(40), base_color="black", hovering_color="aqua")
+        
+        #Grouping buttons
+        self.buttons.add(self.volume_button_left_arrow)
+        self.buttons.add(self.volume_button_right_arrow)
+        self.buttons.add(self.change_profile_picture_button)
+
+
+
+
 
     def display_menu(self):
         self.run_display = True
         while self.run_display:
+            self.game.Check_inputs()
             self.check_events()
-            self.check_input()
             self.game.display.fill((0,0,0))
-            utilities.draw_text('Options', 20, self.game.WIDTH / 2, self.game.HEIGHT/2 - 30, self.game.display)
-            utilities.draw_text('Volume', 15, self.volx, self.voly, self.game.display)
-            utilities.draw_text('Controls', 15, self.controlsx, self.controlsy, self.game.display)
+            self.game.display.blit(utilities.get_image("background_main"), (0, 0))
+            #Music settings
+            utilities.draw_text("Music", 40, self.mid_x, 100, self.game.display,utilities.BLACK)
+            
+            if self.music:
+                utilities.draw_text("ON", 30, self.mid_x, 170, self.game.display)
+            else:
+                utilities.draw_text("OFF", 30, self.mid_x, 170, self.game.display)
+            #Volume settings    
+            utilities.draw_text("Volume", 40, self.mid_x, 230, self.game.display,utilities.BLACK)
+            utilities.draw_text(utilities.convert_volume(self.volume), 30, self.mid_x, 300, self.game.display)
+            #Map choice
+            utilities.draw_text("Map", 40, self.mid_x, 370, self.game.display,utilities.BLACK)
+            
+            utilities.draw_text(utilities.get_map_names(self.map), 30, self.mid_x, 440, self.game.display)
+            
+            #bliting player skin
+            try:
+                raise Exception
+            except:
+                self.game.display.blit(self.default_player.image, self.default_player.rect)
+            
+            utilities.draw_text("Controls", 40, self.mid_x, 510, self.game.display,utilities.BLACK)
+            if self.controls == "wsad":
+                utilities.draw_text("W S A D", 30, self.mid_x, 580, self.game.display)
+            if self.controls == "arrows":
+                utilities.draw_text("Arrows", 30, self.mid_x, 580, self.game.display)
+                
+            #update all buttons
+            for button in self.buttons:
+                button.change_color(self.game.mpos)
+            #update all buttons
+            self.buttons.update(self.game.display)
             self.blit_screen()
 
-    def check_input(self):
-        if self.game.BACK_KEY:
-            self.game.curr_menu = self.game.main_menu
-            self.run_display = False
-        
-        elif self.game.UP_KEY or self.game.DOWN_KEY:
-            if self.state == 'Volume':
-                self.state = 'Controls'
-                self.cursor_rect.midtop =( self.controlsx + self.cursor_offset, self.controlsy)
-            elif self.state == 'Controls':
-                self.state = 'Volume'
-                self.cursor_rect.midtop = (self.volx + self.cursor_offset, self.voly)
-        elif self.game.START_KEY:
-            #TODO: Create a volume menu and controls menu
-            pass
+
     def check_events(self):
         #TODO: to be changed
         for event in pygame.event.get():
@@ -206,6 +244,20 @@ class OptionsMenu(Menu):
                     self.game.DOWN_KEY = True
                 if event.key == pygame.K_UP:
                     self.game.UP_KEY = True
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.volume_button_right_arrow.check_for_input(self.game.mpos):
+                    self.next_volume = self.volume + 1
+                    print(self.next_volume)
+                    if self.next_volume <= 10 and self.next_volume >= 0:
+                        self.volume = self.next_volume
+                        print(self.volume)
+                if self.volume_button_left_arrow.check_for_input(self.game.mpos):
+                    self.next_volume = self.volume - 1
+                    print(self.next_volume)
+                    if self.next_volume <= 10 and self.next_volume >= 0:
+                        self.volume = self.next_volume
+                        print(self.volume)
+                    
 
 class CreditsMenu(Menu):
     def __init__(self,game):
