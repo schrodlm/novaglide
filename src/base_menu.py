@@ -2,6 +2,7 @@ import pygame
 import utilities
 from input_box import InputBox
 from button import Button
+from table import Table
 import sys
 from player import Player
 import json
@@ -155,8 +156,8 @@ class MainMenu(Menu):
                     self.game.user_credentials = {"name":"", "password":""}
 
                 if self.ranked_button.check_for_input(self.game.mpos):
-                    #TODO: finish 
-                    print("ranked selected")
+                    self.run_display = False
+                    self.game.curr_menu = self.game.ranked_menu
                 if self.credits_button.check_for_input(self.game.mpos):
                     self.run_display = False
                     self.game.curr_menu = self.game.credits_menu
@@ -182,7 +183,7 @@ class SettingsMenu(Menu):
 
         self.controls = self.loaded_settings["Controls"]
         #using player to plot skin preview
-        self.default_player = Player(200,self.mid_y + 100, 100)
+        self.player = Player(200,self.mid_y + 100, 100)
         #group of all buttons
         self.buttons = pygame.sprite.Group()
 
@@ -267,7 +268,7 @@ class SettingsMenu(Menu):
             utilities.draw_text("Your skin", 30, 200, 200, self.game.display)
             #bliting player skin
             #TODO: make more skins that will be circular in class player
-            self.game.display.blit(self.default_player.image, self.default_player.rect)
+            self.game.display.blit(self.player.image, self.player.rect)
             #controls settings
             utilities.draw_text("Controls", 40, self.mid_x, 380, self.game.display,utilities.BLACK)
             if self.controls == "wsad":
@@ -337,6 +338,85 @@ class SettingsMenu(Menu):
         new_settings["Controls"] = self.controls
         with open("./../settings/settings.json", 'w',encoding="UTF-8") as stgs:
             json.dump(new_settings, stgs)
+
+class RankedMenu(Menu):
+    def __init__(self,game):
+        Menu.__init__(self,game)
+        self.back_button_rm = Button(image=utilities.get_image("back_arrow"), pos=(70, 50),
+                            text_input="", font=utilities.get_font(40),
+                            base_color=(133, 88, 255), hovering_color="aqua")
+        self.elo, self.division = self.get_my_elo()
+        self.player = Player(200,250, 100)
+        self.winrate = self.get_winrate()
+        self.challenger_table = Table(data = "auto",header="CHALLENGERS")
+
+    def draw_ranked_names(self,names):
+        xs = [120,280,455,660,900,1113]
+        ys = [465,460,420,421,420,415]
+        intervals = ["<1000","<2000","<4000","<6000",">= 8000","TOP 100"]
+        for name, interval, x, y in zip(names, intervals, xs, ys):
+            utilities.draw_text(name, 25, x, y, self.game.display,color="aqua")
+            utilities.draw_text(interval, 15, x, y + 20, self.game.display,color="aqua")
+    def display_menu(self):
+        self.run_display = True
+        while self.run_display:
+            self.game.Check_inputs()
+            self.check_events()
+            self.game.display.fill((0,0,0))
+            # draw background
+            self.game.display.fill((30, 15, 72))
+            #draw trophies on the screen
+            self.game.display.blit(utilities.get_image("ranks"), (0,400))
+            #draw player and his stats
+            utilities.draw_text("Your stats", 35, 500, 130, self.game.display,color="aqua")
+            utilities.draw_text(f"ELO:   {self.elo}", 35, 500, 200, self.game.display,color="aqua")
+            utilities.draw_text(self.division, 35, 500, 270,
+                            self.game.display,color="aqua")
+            utilities.draw_text(self.winrate, 35, 500, 340,
+                            self.game.display,color="aqua")
+            self.game.display.blit(self.player.image, self.player.rect)
+            #draw names
+            self.draw_ranked_names(["WOODEN", "IRON", "BRONZE", "SILVER", "GOLD", "CHALLENGER"])
+            self.back_button_rm.update(self.game.display)
+            self.challenger_table.update(self.game.display)
+            self.blit_screen()
+
+
+    def check_events(self):
+        for event in pygame.event.get():
+            # closing the game with mouse
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.back_button_rm.check_for_input(self.game.mpos):
+                    self.run_display = False
+                    self.game.curr_menu = self.game.main_menu
+                    
+    def get_my_elo(self):
+        #TODO: database query for my current elo
+        #will return pair (elo,division)
+        #TODO: Temporary, to be deleted
+        elo = 13000
+        division = "CHALLENGER"
+        return (elo,division)
+    def get_challengers(self):
+        #TODO: query top 100 players ordered by elo
+        challengers = []
+        return challengers
+    def get_winrate(self):
+        #TODO: Calculating winrate (wins/gp)
+        #TODO: Temporary, to be deleted
+        winrate = "80%"
+        return winrate
+
+
+
+
+
+
+
+
 
 class CreditsMenu(Menu):
     def __init__(self,game):
