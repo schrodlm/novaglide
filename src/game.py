@@ -38,6 +38,9 @@ class Game():
 
         self.user_credentials = {"name":"", "password":""}
 
+        self.ttime = self.clock.tick()
+        self.keys_pressed = pygame.key.get_pressed()
+
         self.clock.tick(60)
 
         self.main_menu = MainMenu(self)
@@ -76,7 +79,7 @@ class Game():
                     self.UP_KEY = True
 
     def Tick(self):
-        #TODO: přidat i do init? pylint to nefeeluje mimo něj
+        #TODO: přidano i do init? pylint to nefeeluje mimo něj
         self.ttime = self.clock.tick()
         self.mpos = pygame.mouse.get_pos()
         self.keys_pressed = pygame.key.get_pressed()
