@@ -5,7 +5,7 @@ from pygame import Vector2
 
 from player import Player
 from ball import Ball
-from base_menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu
+from base_menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
 
 class Game():
     def __init__(self):
@@ -45,6 +45,7 @@ class Game():
         self.credits_menu = CreditsMenu(self)
         self.login_menu = LogInMenu(self)
         self.ranked_menu = RankedMenu(self)
+        self.match_history_menu = MatchHistoryMenu(self)
 
         self.curr_menu = self.login_menu
 

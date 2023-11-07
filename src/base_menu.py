@@ -349,7 +349,7 @@ class RankedMenu(Menu):
         self.elo, self.division = self.get_my_elo()
         self.player = Player(170,250, 100)
         self.winrate = self.get_winrate()
-        self.challenger_table = Table(header="CHALLENGERS")
+        self.challenger_table = Table(header="CHALLENGERS",cols_sizes=[50,350,100,120])
         #challenger table buttons
         self.challenger_table_button_left_arrow = Button(image=utilities.get_image("left_arrow"),
                                     pos=(int(((self.challenger_table.max_x -
@@ -437,6 +437,21 @@ class RankedMenu(Menu):
 
 
 
+class MatchHistoryMenu(Menu):
+    def __init__(self,game):
+        Menu.__init__(self,game)
+
+    def display_menu(self):
+        self.run_display = True
+        while self.run_display:
+            self.game.check_events()
+            self.blit_screen()
+
+    def check_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
 
 

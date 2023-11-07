@@ -2,7 +2,7 @@ import pygame
 import utilities
 class Table(pygame.sprite.Sprite):
     def __init__(self, header = "", row_size = 32,
-                top_left_coords = (640,50),font_size = 16, header_font_size = 25, n_rows = 10, cols_sizes = [50,350,100,120],
+                top_left_coords = (640,50),font_size = 16, header_font_size = 25, n_rows = 10, cols_sizes = None,
                 lines_color = "white",contents_colors = "aqua"):
         pygame.sprite.Sprite.__init__(self)
         self.header = header
