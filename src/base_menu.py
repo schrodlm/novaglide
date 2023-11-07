@@ -4,6 +4,7 @@ from input_box import InputBox
 from button import Button
 import sys
 from player import Player
+import json
 
 class Menu():
     def __init__(self,game):
@@ -127,7 +128,7 @@ class MainMenu(Menu):
                 button.change_color(self.game.mpos)
             self.buttons.update(self.game.display)
             self.blit_screen()
-  
+
     def check_events(self):
         for event in pygame.event.get():
             # closing the game with mouse
@@ -175,10 +176,10 @@ class SettingsMenu(Menu):
         self.map_indx = int(self.loaded_settings["Map"][-5]) - 1
         self.next_map_indx = 0
         self.maps_ordered = utilities.get_ordered_maps()
-        self.map = self.maps_ordered[0]
+        self.map = self.maps_ordered[self.map_indx]
 
         self.profile_picture = self.loaded_settings["ProfilePicture"]
-        
+
         self.controls = self.loaded_settings["Controls"]
         #using player to plot skin preview
         self.default_player = Player(200,self.mid_y + 100, 100)
@@ -244,7 +245,6 @@ class SettingsMenu(Menu):
             self.check_events()
             self.game.display.fill((0,0,0))
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
-            self.map = self.maps_ordered[self.map_indx]
             #Music settings
             utilities.draw_text("Music", 40, self.mid_x, 100, self.game.display,utilities.BLACK)
             #music settings
@@ -254,7 +254,7 @@ class SettingsMenu(Menu):
                 utilities.draw_text("OFF", 30, self.mid_x, 170, self.game.display)
             #Volume settings
             utilities.draw_text("Volume", 40, self.mid_x, 240, self.game.display,utilities.BLACK)
-            utilities.draw_text(utilities.convert_volume(self.volume), 30, 
+            utilities.draw_text(utilities.convert_volume(self.volume), 30,
             self.mid_x, 310, self.game.display)
             #Map choice
             utilities.draw_text("Map", 40, 980, 100, self.game.display,utilities.BLACK)
@@ -288,7 +288,8 @@ class SettingsMenu(Menu):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 #music button revert
-                if self.music_button_right_arrow.check_for_input(self.game.mpos) or self.music_button_left_arrow.check_for_input(self.game.mpos):
+                if (self.music_button_right_arrow.check_for_input(self.game.mpos) or
+                    self.music_button_left_arrow.check_for_input(self.game.mpos)):
                     self.music = not self.music
 
                 #volume changing
@@ -302,7 +303,8 @@ class SettingsMenu(Menu):
                         self.volume = self.next_volume
 
                 #controls changing
-                if self.controls_button_right_arrow.check_for_input(self.game.mpos) or self.controls_button_left_arrow.check_for_input(self.game.mpos):
+                if (self.controls_button_right_arrow.check_for_input(self.game.mpos) or
+                    self.controls_button_left_arrow.check_for_input(self.game.mpos)):
                     if self.controls == "wsad":
                         self.controls = "arrows"
                     else:
@@ -316,11 +318,26 @@ class SettingsMenu(Menu):
                     self.next_map_indx = self.map_indx - 1
                     if self.next_map_indx <= self.max_map_indx and self.next_map_indx >= 0:
                         self.map_indx = self.next_map_indx
+                #change it immediately so it gets saved
+                self.map = self.maps_ordered[self.map_indx]
+                #save new settings to json
+                self.save_settings()
                 #return to main menu
                 if self.exit_button.check_for_input(self.game.mpos):
                     self.run_display = False
                     self.game.curr_menu = self.game.main_menu
-                        
+    def save_settings(self):
+        #TODO:open settings only as seperate window so it can be changed ingame
+        #+ notify game that settings changed?
+        new_settings = {}
+        new_settings["Music"] = self.music
+        new_settings["Volume"] = self.volume
+        new_settings["Map"] = self.map
+        new_settings["ProfilePicture"] = self.profile_picture
+        new_settings["Controls"] = self.controls
+        with open("./../settings/settings.json", 'w',encoding="UTF-8") as stgs:
+            json.dump(new_settings, stgs)
+
 class CreditsMenu(Menu):
     def __init__(self,game):
         Menu.__init__(self,game)

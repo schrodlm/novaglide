@@ -1,5 +1,1 @@
-{"Music" : true,
-"Volume" : 5,
-"Map" : "./../resources/rink_bg_2.jpg",
-"ProfilePicture" : "./../resources/profile_picture.jpg",
-"Controls" : "wsad"}
+{"Music": true, "Volume": 10, "Map": "./../resources/rink_bg_1.jpg", "ProfilePicture": "./../resources/profile_picture.jpg", "Controls": "wsad"}

@@ -80,8 +80,8 @@ class Game():
         self.keys_pressed = pygame.key.get_pressed()
  
     def Check_inputs(self):
-        #menu needs to update keyboard and mouse input but should not tick the game clock
-        #write different Tick_menu() without self.ttime?
+        #TODO:menu needs to update keyboard and mouse input but should not tick the game clock
+        #write different Tick_menu() without self.ttime? idk yet
         self.mpos = pygame.mouse.get_pos()
         self.keys_pressed = pygame.key.get_pressed()
 
