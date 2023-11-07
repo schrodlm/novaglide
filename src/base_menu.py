@@ -342,14 +342,33 @@ class SettingsMenu(Menu):
 class RankedMenu(Menu):
     def __init__(self,game):
         Menu.__init__(self,game)
+        self.elements = pygame.sprite.Group()
         self.back_button_rm = Button(image=utilities.get_image("back_arrow"), pos=(70, 50),
                             text_input="", font=utilities.get_font(40),
                             base_color=(133, 88, 255), hovering_color="aqua")
         self.elo, self.division = self.get_my_elo()
-        self.player = Player(200,250, 100)
+        self.player = Player(170,250, 100)
         self.winrate = self.get_winrate()
-        self.challenger_table = Table(data = "auto",header="CHALLENGERS")
-
+        self.challenger_table = Table(header="CHALLENGERS")
+        #challenger table buttons
+        self.challenger_table_button_left_arrow = Button(image=utilities.get_image("left_arrow"),
+                                    pos=(int(((self.challenger_table.max_x -
+                                    self.challenger_table.top_left_coords[0]) // 2)
+                                    + self.challenger_table.top_left_coords[0]) - 150,
+                                    self.challenger_table.top_left_coords[1] - 20, 170),
+                                    text_input="", font=utilities.get_font(40),
+                                    base_color="black", hovering_color="aqua")
+        self.challenger_table_right_arrow = Button(image=utilities.get_image("right_arrow"),
+                                    pos=(int(((self.challenger_table.max_x -
+                                    self.challenger_table.top_left_coords[0]) // 2)
+                                    + self.challenger_table.top_left_coords[0]) + 150,
+                                    self.challenger_table.top_left_coords[1] - 20, 170),
+                                    text_input="", font=utilities.get_font(40),
+                                    base_color="black", hovering_color="aqua")
+        self.elements.add(self.back_button_rm)
+        self.elements.add(self.challenger_table_button_left_arrow)
+        self.elements.add(self.challenger_table_right_arrow)
+        self.elements.add(self.challenger_table)
     def draw_ranked_names(self,names):
         xs = [120,280,455,660,900,1113]
         ys = [465,460,420,421,420,415]
@@ -368,17 +387,19 @@ class RankedMenu(Menu):
             #draw trophies on the screen
             self.game.display.blit(utilities.get_image("ranks"), (0,400))
             #draw player and his stats
-            utilities.draw_text("Your stats", 35, 500, 130, self.game.display,color="aqua")
-            utilities.draw_text(f"ELO:   {self.elo}", 35, 500, 200, self.game.display,color="aqua")
-            utilities.draw_text(self.division, 35, 500, 270,
+            utilities.draw_text("Your stats", 35, 470, 130, self.game.display,color="aqua")
+            utilities.draw_text(f"ELO:   {self.elo}", 35, 470, 200, self.game.display,color="aqua")
+            utilities.draw_text(self.division, 35, 470, 270,
                             self.game.display,color="aqua")
-            utilities.draw_text(self.winrate, 35, 500, 340,
+            utilities.draw_text(self.winrate, 35, 470, 340,
                             self.game.display,color="aqua")
             self.game.display.blit(self.player.image, self.player.rect)
             #draw names
             self.draw_ranked_names(["WOODEN", "IRON", "BRONZE", "SILVER", "GOLD", "CHALLENGER"])
-            self.back_button_rm.update(self.game.display)
-            self.challenger_table.update(self.game.display)
+            self.elements.update(self.game.display)
+            #TODO: to be changed to real data from database, just for testing now
+            self.challenger_table.insert_data(data = self.get_challengers(), display=self.game.display)
+            self.challenger_table.create_positions = False
             self.blit_screen()
 
 
@@ -402,7 +423,10 @@ class RankedMenu(Menu):
         return (elo,division)
     def get_challengers(self):
         #TODO: query top 100 players ordered by elo
-        challengers = []
+        challengers = ([str(indx + 1) for indx in range(10)] +
+                            ["Brambora" for _ in range(10)] +
+                            ["50%" for _ in range(10)] +
+                            ["3570" for _ in range(10)])
         return challengers
     def get_winrate(self):
         #TODO: Calculating winrate (wins/gp)
