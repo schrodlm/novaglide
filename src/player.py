@@ -5,11 +5,11 @@ import settings
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self,x,y):
+    def __init__(self, x, y, radius = 40, color = "red"):
         pygame.sprite.Sprite.__init__(self)
 
         # width and height
-        self.radius = 40
+        self.radius = radius
         self.x, self.y = x, y
 
         self.rect = pygame.Rect(x - self.radius, y - self.radius,
@@ -20,7 +20,7 @@ class Player(pygame.sprite.Sprite):
         
         self.image = self.image.convert_alpha()
         
-        pygame.draw.circle(self.image, "red",
+        pygame.draw.circle(self.image, color,
             (self.radius, self.radius), self.radius)
 
 
