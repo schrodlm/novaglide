@@ -5,7 +5,7 @@ from pygame import Vector2
 
 from player import Player
 from ball import Ball
-from base_menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
+from menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
 
 class Game():
     def __init__(self):
