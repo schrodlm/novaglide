@@ -3,9 +3,10 @@ import pygame
 import pygame.locals
 from pygame import Vector2
 
-from player import Player
+from player import Player, Bot
 from ball import Ball
 from menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
+from match import Match1v1
 
 class Game():
     def __init__(self):
@@ -25,16 +26,9 @@ class Game():
 
         self.display = pygame.Surface(self.screen_res)
         self.screen = pygame.display.set_mode(self.screen_res, pygame.HWSURFACE, 32)
+        self.play_match = False
 
-        self.entities = pygame.sprite.Group()
-        self.solids = pygame.sprite.Group()
 
-        self.player = Player(20,20)
-        self.ball = Ball(100,100)
-
-        self.entities.add(self.solids)
-        self.entities.add(self.player)
-        self.entities.add(self.ball)
 
         self.user_credentials = {"name":"", "password":""}
 
@@ -51,6 +45,15 @@ class Game():
         self.match_history_menu = MatchHistoryMenu(self)
 
         self.curr_menu = self.login_menu
+
+        self.player = Player(20,20)
+        self.bot = Bot(100, 100)
+        self.curr_match = Match1v1(self, self.player, self.bot)
+
+    def start_match(self):
+        if(self.play_match == True):
+            self.curr_match.match_loop()
+    
 
     def game_loop(self):
         while self.playing:
@@ -90,24 +93,6 @@ class Game():
         self.mpos = pygame.mouse.get_pos()
         self.keys_pressed = pygame.key.get_pressed()
 
-    def Draw(self):
-        self.display.fill((150,150,150))
-        if pygame.sprite.collide_circle(self.player,self.ball) :
-            # 1. Calculate the collision normal
-            collision_normal = self.ball.rect.center - Vector2(self.player.rect.center)
-            collision_normal.normalize_ip()  # Normalize the vector to have a magnitude of 1
-
-            # 2. Determine the new speed of the ball
-            speed_magnitude = 20  # You can adjust this value as needed
-            self.ball.speed = collision_normal * speed_magnitude
-
-
-        self.dt = self.clock.tick(60) / 1000
-        self.player.update(self.dt)
-        self.ball.update()
-
-        for e in self.entities: #update blocks etc.
-            self.display.blit(e.image, e.rect)
-
+    def Draw(self):   
         self.screen.blit(self.display, (0,0))
         pygame.display.update()
