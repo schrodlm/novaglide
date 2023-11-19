@@ -12,7 +12,8 @@ class Menu():
         self.game = game
         self.run_display = True
         self.mid_x = self.game.WIDTH // 2
-        self.mid_y = self.game.HEIGHT //2
+        self.mid_y = self.game.HEIGHT // 2
+
     def blit_screen(self):
         self.game.screen.blit(self.game.display,(0,0))
         pygame.display.update()
@@ -139,8 +140,10 @@ class MainMenu(Menu):
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.play_1v1_button.check_for_input(self.game.mpos):
-                    self.game.playing = True
                     self.run_display = False
+                    self.game.play_match = True
+                    print("1v1 selected")
+
 
                 if self.play_2v2_button.check_for_input(self.game.mpos):
                     #TODO: implement multiplayer

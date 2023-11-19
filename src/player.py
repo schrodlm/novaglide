@@ -53,3 +53,56 @@ class Player(pygame.sprite.Sprite):
     def setRect(self):
         self.rect = pygame.Rect(self.x - self.radius, self.y - self.radius,
                                 2 * self.radius, 2 * self.radius)
+
+    def set_up(self, match):
+        pass
+# -------------------------- BOT -----------------------------------
+
+
+class Bot(pygame.sprite.Sprite):
+    def __init__(self, x, y, radius = 40, color = "blue"):
+        pygame.sprite.Sprite.__init__(self)
+
+        # width and height
+        self.radius = radius
+        self.x, self.y = x, y
+
+        self.rect = pygame.Rect(x - self.radius, y - self.radius,
+                                2 * self.radius, 2 * self.radius)
+
+        self.image = pygame.Surface((2 * self.radius, 2 * self.radius)
+                                    , pygame.SRCALPHA)  # make it transparent
+        
+        self.image = self.image.convert_alpha()
+        
+        pygame.draw.circle(self.image, color,
+            (self.radius, self.radius), self.radius)
+        
+        self.ball = None
+    
+    def set_up(self, match):
+        self.ball = match.ball
+
+    def update(self, dt):
+        # Basic AI logic to track the ball's y-coordinate
+        if self.ball.y > self.y:
+            self.move(dt, 1)  # Move down
+        elif self.ball.y < self.y:
+            self.move(dt, -1)  # Move up
+
+    def move(self, dx, dy):
+        self.x += dx
+        self.y += dy
+        if self.x < 0:
+            self.x = settings.WIDTH
+        elif self.x > settings.WIDTH:
+            self. x = 0
+        if self.y < 0:
+            self.y = settings.HEIGHT
+        elif self.y > settings.HEIGHT:
+            self.y = 0
+        self.setRect() 
+
+    def setRect(self):
+        self.rect = pygame.Rect(self.x - self.radius, self.y - self.radius,
+                                2 * self.radius, 2 * self.radius)

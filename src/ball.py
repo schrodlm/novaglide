@@ -11,8 +11,11 @@ class Ball(pygame.sprite.Sprite):
 
         #radius
         self.radius = 20
-        self.x, self.y = x,y
 
+        #ball should spawn in a middle of a field
+        self.x, self.y = settings.WIDTH/2, settings.HEIGHT/2
+        self.speed = (x,x)
+        
 
         self.rect = pygame.Rect(x - self.radius, y - self.radius,
                                 2 * self.radius, 2 * self.radius)
