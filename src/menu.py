@@ -3,6 +3,7 @@ import utilities
 from input_box import InputBox
 from button import Button
 from table import Table
+
 import sys
 from player import Player
 import json
@@ -31,7 +32,10 @@ class LogInMenu(Menu):
         self.password_input = InputBox(x = 440, y = 300, w = 400, h = 70, hide = True)
         # group same objects
         self.input_boxes = [self.username_input, self.password_input]
-
+        self.error_present = False
+        self.allow = None
+        self.ignore_check_event = False
+        
     def display_menu(self):
         self.username_input.text = ""
         self.password_input.text = ""
@@ -44,6 +48,9 @@ class LogInMenu(Menu):
             #draw instructions
             utilities.draw_text("Login with your nickname and password", 30,
                                 self.mid_x, 150, self.game.display,utilities.BLACK)
+            if self.allow is not None and self.error_present:
+                self.draw_error(self.allow)
+            
             self.log_in_button.change_color(self.game.mpos)
             self.log_in_button.update(self.game.display)
             self.check_events()
@@ -58,15 +65,33 @@ class LogInMenu(Menu):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.log_in_button.check_for_input(self.game.mpos):
-                    self.run_display = False
-                    self.game.curr_menu = self.game.main_menu
                     self.game.user_credentials["name"] = self.username_input.text
                     self.game.user_credentials["password"] = self.password_input.text
+                    self.allow = self.game.query.allow_user_credentials(self.game.user_credentials["name"],self.game.user_credentials["password"])
+                    match self.allow:
+                        case "known user":
+                            self.error_present = False
+                            self.allow = None
+                            self.run_display = False
+                            self.game.curr_menu = self.game.main_menu
+                        case "registering new user":
+                            self.error_present = False
+                            self.allow = None
+                            self.run_display = False
+                            self.game.curr_menu = self.game.main_menu
+                        case "Make sure to fill both name and password":
+                            self.error_present = True
+                        case "Incorrect password for this username":
+                            self.error_present = True
+                        case _:
+                            pass
             for box in self.input_boxes:
                 box.handle_event(event)
         for box in self.input_boxes:
             box.draw_updated(self.game.display)
-
+    def draw_error(self, message):
+            utilities.draw_text(message, 30,
+                    self.mid_x, 550, self.game.display,utilities.BLACK)
 class MainMenu(Menu):
     def __init__(self,game):
         Menu.__init__(self,game)

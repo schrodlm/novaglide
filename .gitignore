@@ -103,3 +103,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+#database data
+data/*
+#exception for sql init file
+!data/init.sql
