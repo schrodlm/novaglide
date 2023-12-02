@@ -2,7 +2,7 @@ import sys
 import pygame
 import pygame.locals
 from pygame import Vector2
-
+from database_query import DBQuery
 from player import Player, Bot
 from ball import Ball
 from menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
@@ -31,6 +31,7 @@ class Game():
 
 
         self.user_credentials = {"name":"", "password":""}
+        self.query = DBQuery()
 
         self.ttime = self.clock.tick()
         self.keys_pressed = pygame.key.get_pressed()
