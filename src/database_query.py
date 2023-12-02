@@ -63,8 +63,12 @@ class DBQuery:
         #Force the user to always fill both of the fields
         if username == "" or password == "":
             return "Make sure to fill both name and password"
+        
         # Execute a query to retrieve user credentials
-        self.cursor.execute("SELECT Name, Password FROM user_data WHERE Name = %s", (username))
+        try:
+            self.cursor.execute("SELECT Name, Password FROM user_data WHERE Name = %s", (username,))
+        except psycopg2.InterfaceError:
+            return None
         user_data = self.cursor.fetchone()
         if user_data is not None and user_data[1] == password:
             #The username is present and the password is correct ->client will be linked to that existing account

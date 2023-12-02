@@ -34,6 +34,7 @@ class LogInMenu(Menu):
         self.input_boxes = [self.username_input, self.password_input]
         self.error_present = False
         self.allow = None
+        self.ignore_check_event = False
         
     def display_menu(self):
         self.username_input.text = ""
@@ -68,13 +69,22 @@ class LogInMenu(Menu):
                     self.game.user_credentials["password"] = self.password_input.text
                     self.allow = self.game.query.allow_user_credentials(self.game.user_credentials["name"],self.game.user_credentials["password"])
                     match self.allow:
-                        case "known_user":
+                        case "known user":
+                            self.error_present = False
+                            self.allow = None
                             self.run_display = False
                             self.game.curr_menu = self.game.main_menu
                         case "registering new user":
+                            self.error_present = False
+                            self.allow = None
                             self.run_display = False
                             self.game.curr_menu = self.game.main_menu
-                            
+                        case "Make sure to fill both name and password":
+                            self.error_present = True
+                        case "Incorrect password for this username":
+                            self.error_present = True
+                        case _:
+                            pass
             for box in self.input_boxes:
                 box.handle_event(event)
         for box in self.input_boxes:
