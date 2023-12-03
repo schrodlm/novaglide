@@ -68,7 +68,8 @@ class DBQuery:
         try:
             self.cursor.execute("SELECT Name, Password FROM user_data WHERE Name = %s", (username,))
         except psycopg2.InterfaceError:
-            return None
+            self.create_new_connection()
+            self.cursor.execute("SELECT Name, Password FROM user_data WHERE Name = %s", (username,))
         user_data = self.cursor.fetchone()
         if user_data is not None and user_data[1] == password:
             #The username is present and the password is correct ->client will be linked to that existing account

@@ -65,26 +65,20 @@ class LogInMenu(Menu):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.log_in_button.check_for_input(self.game.mpos):
-                    self.game.user_credentials["name"] = self.username_input.text
-                    self.game.user_credentials["password"] = self.password_input.text
-                    self.allow = self.game.query.allow_user_credentials(self.game.user_credentials["name"],self.game.user_credentials["password"])
+                    allowed = self.game.query.allow_user_credentials(self.username_input.text,self.password_input.text)
+                    if allowed is not None:
+                        self.allow = allowed
                     match self.allow:
-                        case "known user":
+                        case "known user" | "registering new user":
                             self.error_present = False
                             self.allow = None
                             self.run_display = False
                             self.game.curr_menu = self.game.main_menu
-                        case "registering new user":
-                            self.error_present = False
-                            self.allow = None
-                            self.run_display = False
-                            self.game.curr_menu = self.game.main_menu
-                        case "Make sure to fill both name and password":
+                            self.game.user_credentials["name"] = self.username_input.text
+                            self.game.user_credentials["password"] = self.password_input.text
+                            break
+                        case "Make sure to fill both name and password" | "Incorrect password for this username":
                             self.error_present = True
-                        case "Incorrect password for this username":
-                            self.error_present = True
-                        case _:
-                            pass
             for box in self.input_boxes:
                 box.handle_event(event)
         for box in self.input_boxes:
