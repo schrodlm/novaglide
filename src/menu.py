@@ -1,12 +1,16 @@
+"""_summary_
+
+Returns:
+    _type_: _description_
+"""
+import sys
+import json
 import pygame
 import utilities
 from input_box import InputBox
 from button import Button
 from table import Table
-
-import sys
 from player import Player
-import json
 
 class Menu():
     def __init__(self,game):
@@ -28,8 +32,8 @@ class LogInMenu(Menu):
                                 text_input="LOG IN", font=utilities.get_font(75),
                                 base_color="black", hovering_color="aqua")
         # initializing input boxes for username and password
-        self.username_input = InputBox(x = 440, y = 200, w = 400, h = 70, hide = False)
-        self.password_input = InputBox(x = 440, y = 300, w = 400, h = 70, hide = True)
+        self.username_input = InputBox(x = 440, y = 200, w = 400, h = 70, hide = False, config=self.game.config)
+        self.password_input = InputBox(x = 440, y = 300, w = 400, h = 70, hide = True, config=self.game.config)
         # group same objects
         self.input_boxes = [self.username_input, self.password_input]
         self.error_present = False
@@ -47,7 +51,7 @@ class LogInMenu(Menu):
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
             #draw instructions
             utilities.draw_text("Login with your nickname and password", 30,
-                                self.mid_x, 150, self.game.display,utilities.BLACK)
+                                self.mid_x, 150, self.game.display,self.game.config["colours"]["black"])
             if self.allow is not None and self.error_present:
                 self.draw_error(self.allow)
             
@@ -85,32 +89,33 @@ class LogInMenu(Menu):
             box.draw_updated(self.game.display)
     def draw_error(self, message):
             utilities.draw_text(message, 30,
-                    self.mid_x, 550, self.game.display,utilities.BLACK)
+                    self.mid_x, 550, self.game.display, self.game.config["colours"]["black"])
 class MainMenu(Menu):
     def __init__(self,game):
         Menu.__init__(self,game)
         self.buttons = pygame.sprite.Group()
+        hovering_color = self.game.config["design"]["hovering_colour"]
         self.play_1v1_button = Button(image=None, pos=(self.mid_x, 300),
                                     text_input="Play 1v1", font=utilities.get_font(40),
-                                    base_color="black", hovering_color="aqua")
+                                    base_color="black", hovering_color=hovering_color)
         self.play_2v2_button = Button(image=None, pos=(self.mid_x, 370),
                                     text_input="Play 2v2", font=utilities.get_font(40),
-                                    base_color="black", hovering_color="aqua")
+                                    base_color="black", hovering_color=hovering_color)
         self.match_history_button = Button(image=None, pos=(self.mid_x, 440),
                                     text_input="Match history", font=utilities.get_font(40),
-                                    base_color="black", hovering_color="aqua")
+                                    base_color="black", hovering_color=hovering_color)
         self.ranked_button = Button(image=None, pos=(self.mid_x, 510),
                                     text_input="Ranked system", font=utilities.get_font(40),
-                                    base_color="black", hovering_color="aqua")
+                                    base_color="black", hovering_color=hovering_color)
         self.back_button = Button(image=utilities.get_image("back_arrow"), pos=(70, 100),
                                     text_input="", font=utilities.get_font(40),
-                                    base_color=(133, 88, 255), hovering_color="aqua")
+                                    base_color=(133, 88, 255), hovering_color=hovering_color)
         self.settings_button = Button(image=None, pos=(self.mid_x, 580),
                                     text_input="Settings", font=utilities.get_font(40),
-                                    base_color="black", hovering_color="aqua")
+                                    base_color="black", hovering_color=hovering_color)
         self.credits_button = Button(image=None, pos=(self.mid_x, 650),
                                     text_input="Credits", font=utilities.get_font(40),
-                                    base_color="black", hovering_color="aqua")
+                                    base_color="black", hovering_color=hovering_color)
         #Grouping buttons
         self.buttons.add(self.play_1v1_button)
         self.buttons.add(self.play_2v2_button)
@@ -121,7 +126,7 @@ class MainMenu(Menu):
         self.buttons.add(self.credits_button)
         #creating texts and their rectangles
         self.logged_user_text = utilities.get_font(40).render(
-                    self.game.user_credentials.get("name"), True, ((49, 207, 160)))
+                    self.game.user_credentials.get("name"), True, self.game.config["colours"]["aqua"])
         self.logged_user_rect = self.logged_user_text.get_rect(topleft=(15,15))
 
         self.main_menu_text = utilities.get_font(100).render(
@@ -137,7 +142,7 @@ class MainMenu(Menu):
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
             #need to regenerate every time because the name is dynamically changing
             self.logged_user_text = utilities.get_font(40).render(
-            self.game.user_credentials.get("name"), True, ((49, 207, 160)))
+            self.game.user_credentials.get("name"), True, self.game.config["colours"]["aqua"])
             self.logged_user_rect = self.logged_user_text.get_rect(topleft=(15,15))
             #draw texts
             self.game.display.blit(self.logged_user_text, self.logged_user_rect)
@@ -205,7 +210,7 @@ class SettingsMenu(Menu):
 
         self.controls = self.loaded_settings["Controls"]
         #using player to plot skin preview
-        self.player = Player(200,self.mid_y + 100, 100)
+        self.player = Player(200,self.mid_y + 100, self.game.config, 100)
         #group of all buttons
         self.buttons = pygame.sprite.Group()
 
@@ -269,18 +274,18 @@ class SettingsMenu(Menu):
             self.game.display.fill((0,0,0))
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
             #Music settings
-            utilities.draw_text("Music", 40, self.mid_x, 100, self.game.display,utilities.BLACK)
+            utilities.draw_text("Music", 40, self.mid_x, 100, self.game.display, self.game.config["colours"]["black"])
             #music settings
             if self.music:
                 utilities.draw_text("ON", 30, self.mid_x, 170, self.game.display)
             else:
                 utilities.draw_text("OFF", 30, self.mid_x, 170, self.game.display)
             #Volume settings
-            utilities.draw_text("Volume", 40, self.mid_x, 240, self.game.display,utilities.BLACK)
+            utilities.draw_text("Volume", 40, self.mid_x, 240, self.game.display, self.game.config["colours"]["black"])
             utilities.draw_text(utilities.convert_volume(self.volume), 30,
             self.mid_x, 310, self.game.display)
             #Map choice
-            utilities.draw_text("Map", 40, 980, 100, self.game.display,utilities.BLACK)
+            utilities.draw_text("Map", 40, 980, 100, self.game.display, self.game.config["colours"]["black"])
             utilities.draw_text(utilities.get_map_names(self.map), 30, 980, 150, self.game.display)
             #map preview
             self.game.display.blit(
@@ -292,7 +297,7 @@ class SettingsMenu(Menu):
             #TODO: make more skins that will be circular in class player
             self.game.display.blit(self.player.image, self.player.rect)
             #controls settings
-            utilities.draw_text("Controls", 40, self.mid_x, 380, self.game.display,utilities.BLACK)
+            utilities.draw_text("Controls", 40, self.mid_x, 380, self.game.display, self.game.config["colours"]["black"])
             if self.controls == "wsad":
                 utilities.draw_text("W S A D", 30, self.mid_x, 450, self.game.display)
             if self.controls == "arrows":
@@ -367,11 +372,11 @@ class RankedMenu(Menu):
         self.elements = pygame.sprite.Group()
         self.back_button_rm = Button(image=utilities.get_image("back_arrow"), pos=(70, 50),
                             text_input="", font=utilities.get_font(40),
-                            base_color=(133, 88, 255), hovering_color="aqua")
+                            base_color=(133, 88, 255), hovering_color=self.game.config["colours"]["aqua"])
         self.elo, self.division = self.get_my_elo()
         self.player = Player(170,250, 100)
         self.winrate = self.get_winrate()
-        self.challenger_table = Table(header="CHALLENGERS",cols_sizes=[50,350,100,120])
+        self.challenger_table = Table(self.game.config,header="CHALLENGERS",cols_sizes=[50,350,100,120])
         #challenger table buttons
         self.challenger_table_button_left_arrow = Button(image=utilities.get_image("left_arrow"),
                                     pos=(int(((self.challenger_table.max_x -
@@ -379,14 +384,14 @@ class RankedMenu(Menu):
                                     + self.challenger_table.top_left_coords[0]) - 150,
                                     self.challenger_table.top_left_coords[1] - 20, 170),
                                     text_input="", font=utilities.get_font(40),
-                                    base_color="black", hovering_color="aqua")
+                                    base_color=self.game.config["colours"]["black"], hovering_color=self.game.config["design"]["hovering_colour"])
         self.challenger_table_right_arrow = Button(image=utilities.get_image("right_arrow"),
                                     pos=(int(((self.challenger_table.max_x -
                                     self.challenger_table.top_left_coords[0]) // 2)
                                     + self.challenger_table.top_left_coords[0]) + 150,
                                     self.challenger_table.top_left_coords[1] - 20, 170),
                                     text_input="", font=utilities.get_font(40),
-                                    base_color="black", hovering_color="aqua")
+                                    base_color=self.game.config["colours"]["black"], hovering_color=self.game.config["design"]["hovering_colour"])
         self.elements.add(self.back_button_rm)
         self.elements.add(self.challenger_table_button_left_arrow)
         self.elements.add(self.challenger_table_right_arrow)
@@ -396,8 +401,8 @@ class RankedMenu(Menu):
         ys = [465,460,420,421,420,415]
         intervals = ["<1000","<2000","<4000","<6000",">= 8000","TOP 100"]
         for name, interval, x, y in zip(names, intervals, xs, ys):
-            utilities.draw_text(name, 25, x, y, self.game.display,color="aqua")
-            utilities.draw_text(interval, 15, x, y + 20, self.game.display,color="aqua")
+            utilities.draw_text(name, 25, x, y, self.game.display,color=self.game.config["colours"]["aqua"])
+            utilities.draw_text(interval, 15, x, y + 20, self.game.display,color=self.game.config["colours"]["aqua"])
     def display_menu(self):
         self.run_display = True
         while self.run_display:
@@ -405,16 +410,17 @@ class RankedMenu(Menu):
             self.check_events()
             self.game.display.fill((0,0,0))
             # draw background
-            self.game.display.fill((30, 15, 72))
+            r, g, b = self.game.config["design"]["ranked_background_colour"].values()
+            self.game.display.fill((r, g, b))
             #draw trophies on the screen
             self.game.display.blit(utilities.get_image("ranks"), (0,400))
             #draw player and his stats
-            utilities.draw_text("Your stats", 35, 470, 130, self.game.display,color="aqua")
-            utilities.draw_text(f"ELO:   {self.elo}", 35, 470, 200, self.game.display,color="aqua")
+            utilities.draw_text("Your stats", 35, 470, 130, self.game.display,color=self.game.config["colours"]["aqua"])
+            utilities.draw_text(f"ELO:   {self.elo}", 35, 470, 200, self.game.display,color=self.game.config["colours"]["aqua"])
             utilities.draw_text(self.division, 35, 470, 270,
-                            self.game.display,color="aqua")
+                            self.game.display,color=self.game.config["colours"]["aqua"])
             utilities.draw_text(self.winrate, 35, 470, 340,
-                            self.game.display,color="aqua")
+                            self.game.display,color=self.game.config["colours"]["aqua"])
             self.game.display.blit(self.player.image, self.player.rect)
             #draw names
             self.draw_ranked_names(["WOODEN", "IRON", "BRONZE", "SILVER", "GOLD", "CHALLENGER"])
@@ -461,7 +467,7 @@ class RankedMenu(Menu):
 
 class MatchHistoryMenu(Menu):
     def __init__(self,game):
-        Menu.__init__(self,game)
+        super().__init__(game)
 
     def display_menu(self):
         self.run_display = True
@@ -490,7 +496,7 @@ class CreditsMenu(Menu):
             if self.game.START_KEY or self.game.BACK_KEY:
                 self.game.curr_menu = self.game.main_menu
                 self.run_display = False
-            self.game.display.fill(utilities.BLACK)
+            self.game.display.fill(self.game.config["colours"]["black"])
             utilities.draw_text('Press Backspace to exit',
                             15, 170, 30, self.game.display)
             utilities.draw_text('Credits',
