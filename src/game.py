@@ -50,7 +50,7 @@ class Game():
         self.curr_match = Match1v1(self, self.player, self.bot)
 
     def start_match(self):
-        if(self.play_match == True):
+        if self.play_match is True:
             self.curr_match.match_loop()
     
 

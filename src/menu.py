@@ -185,6 +185,10 @@ class MainMenu(Menu):
                 if self.ranked_button.check_for_input(self.game.mpos):
                     self.run_display = False
                     self.game.curr_menu = self.game.ranked_menu
+                if self.match_history_button.check_for_input(self.game.mpos):
+                    self.run_display = False
+                    self.game.curr_menu = self.game.match_history_menu
+                
                 if self.credits_button.check_for_input(self.game.mpos):
                     self.run_display = False
                     self.game.curr_menu = self.game.credits_menu
@@ -368,16 +372,17 @@ class SettingsMenu(Menu):
 
 class RankedMenu(Menu):
     def __init__(self,game):
-        Menu.__init__(self,game)
+        super().__init__(game)
         self.elements = pygame.sprite.Group()
         self.back_button_rm = Button(image=utilities.get_image("back_arrow"), pos=(70, 50),
                             text_input="", font=utilities.get_font(40),
                             base_color=(133, 88, 255), hovering_color=self.game.config["colours"]["aqua"])
         self.elo, self.division = self.get_my_elo()
-        self.player = Player(170,250, 100)
+        self.player_preview = Player(170,250, self.game.config,100)
         self.winrate = self.get_winrate()
         self.challenger_table = Table(self.game.config,header="CHALLENGERS",cols_sizes=[50,350,100,120])
         #challenger table buttons
+        #will change the preview (1-10,11-20,... up to 100)
         self.challenger_table_button_left_arrow = Button(image=utilities.get_image("left_arrow"),
                                     pos=(int(((self.challenger_table.max_x -
                                     self.challenger_table.top_left_coords[0]) // 2)
@@ -408,7 +413,6 @@ class RankedMenu(Menu):
         while self.run_display:
             self.game.Check_inputs()
             self.check_events()
-            self.game.display.fill((0,0,0))
             # draw background
             r, g, b = self.game.config["design"]["ranked_background_colour"].values()
             self.game.display.fill((r, g, b))
@@ -421,7 +425,7 @@ class RankedMenu(Menu):
                             self.game.display,color=self.game.config["colours"]["aqua"])
             utilities.draw_text(self.winrate, 35, 470, 340,
                             self.game.display,color=self.game.config["colours"]["aqua"])
-            self.game.display.blit(self.player.image, self.player.rect)
+            self.game.display.blit(self.player_preview.image, self.player_preview.rect)
             #draw names
             self.draw_ranked_names(["WOODEN", "IRON", "BRONZE", "SILVER", "GOLD", "CHALLENGER"])
             self.elements.update(self.game.display)
@@ -441,7 +445,8 @@ class RankedMenu(Menu):
                 if self.back_button_rm.check_for_input(self.game.mpos):
                     self.run_display = False
                     self.game.curr_menu = self.game.main_menu
-                    
+    #TODO: all these methods will send request to the server and plot the data
+    #that the server returns (now they are just blueprints)
     def get_my_elo(self):
         #TODO: database query for my current elo
         #will return pair (elo,division)
@@ -451,10 +456,15 @@ class RankedMenu(Menu):
         return (elo,division)
     def get_challengers(self):
         #TODO: query top 100 players ordered by elo
-        challengers = ([str(indx + 1) for indx in range(10)] +
-                            ["Brambora" for _ in range(10)] +
-                            ["50%" for _ in range(10)] +
-                            ["3570" for _ in range(10)])
+        challengers = (["1","Brambora","50%","3570","2","Brambora","50%","3570",
+                        "3","Brambora","50%","3570",
+                        "4","Brambora","50%","3570",
+                        "5","Brambora","50%","3570",
+                        "6","Brambora","50%","3570",
+                        "7","Brambora","50%","3570",
+                        "8","Brambora","50%","3570",
+                        "9","Brambora","50%","3570",
+                        "10","Brambora","50%","3570"])
         return challengers
     def get_winrate(self):
         #TODO: Calculating winrate (wins/gp)
@@ -468,11 +478,55 @@ class RankedMenu(Menu):
 class MatchHistoryMenu(Menu):
     def __init__(self,game):
         super().__init__(game)
-
+        self.elements = pygame.sprite.Group()
+        self.back_button_hm = Button(image=utilities.get_image("back_arrow"), pos=(70, 50),
+                            text_input="", font=utilities.get_font(40),
+                            base_color=(133, 88, 255), hovering_color=self.game.config["colours"]["aqua"])
+        #seperate table for solo games and duo games
+        self.match_history_table = Table(self.game.config,header="MATCH HISTORY SOLO", row_size= 60,top_left_coords=(100,80),
+                                header_font_size=50 ,cols_sizes=[230,230,70,70,230,230])
+        self.elements.add(self.match_history_table)
+        self.elements.add(self.back_button_hm)
+        self.draw_solo = True
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.check_events()
+            self.game.Check_inputs()
+            self.check_events()
+            self.game.display.fill((0,0,0))
+            if self.draw_solo:
+                utilities.draw_text("Press arrows to change to duo match history",
+                            18, 640, 700, self.game.display)
+                self.match_history_table.header = "MATCH HISTORY SOLO"
+            else:
+                utilities.draw_text("Press arrows to change to solo match history",
+                            18, 640, 700, self.game.display)
+                self.match_history_table.header = "MATCH HISTORY DUO"
+            self.elements.update(self.game.display)
+            if self.draw_solo:
+                #TODO: to be connected to real database data returned by the server
+                self.match_history_table.insert_data(data = ["autobus","1220","3","5","1220","autobus",
+                                                             "autobus","1220","3","5","1220","autobus",
+                                                             "autobus","1220","3","5","1220","autobus",
+                                                             "autobus","1220","3","5","1220","autobus",
+                                                             "autobus","1220","3","5","1220","autobus",
+                                                             "autobus","1220","3","5","1220","autobus",
+                                                             "autobus","1220","3","5","1220","autobus",
+                                                             "autobus","1220","3","5","1220","autobus",
+                                                             "autobus","1220","3","5","1220","autobus",
+                                                             "autobus","1220","3","5","1220","autobus",], display=self.game.display)
+            else:
+                self.match_history_table.insert_data(data = ["auto-brambor","1220-800","8","6","300-1220","auto-vcela",
+                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
+                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
+                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
+                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
+                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
+                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
+                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
+                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
+                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",], display=self.game.display)
+            self.match_history_table.create_positions = False
             self.blit_screen()
 
     def check_events(self):
@@ -480,8 +534,13 @@ class MatchHistoryMenu(Menu):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
-
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.back_button_hm.check_for_input(self.game.mpos):
+                    self.run_display = False
+                    self.game.curr_menu = self.game.main_menu
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT or event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                    self.draw_solo = not self.draw_solo
 
 
 
