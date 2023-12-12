@@ -1,0 +1,45 @@
+resolution:
+  width: 1280
+  height: 720
+colours:
+  black: black
+  white: white
+  aqua: aqua
+design:
+  table_lines_colour: white
+  table_contents_colour: aqua
+  hovering_colour: aqua
+  input_box_inactive_colour:
+    r: 138
+    g: 178
+    b: 255
+  input_box_active_colour:
+    r: 49
+    g: 207
+    b: 160
+  ranked_background_colour:
+    r: 30
+    g: 15
+    b: 72
+caption:
+  game_name: Novaglide
+coordinates:
+  top_left: 
+    x: 0
+    y: 0
+database:
+  database: novaglide_db
+  user: server
+  password: password
+  host: 0.0.0.0
+  port: 5432
+elo:
+  default_elo: 1000
+match:
+  match_time: 300
+  match_2:
+    ball_pos:
+      x: 400
+      y: 400
+
+  match_4: 

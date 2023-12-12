@@ -1,12 +1,12 @@
-import pygame
+"""_summary_
+"""
 import json
-WHITE = (255,255,255)
-BLACK = (0,0,0)
+import pygame
 
 def get_font(size):
     return pygame.font.Font("./../resources/ETHNOCEN.TTF", size)
 
-def draw_text(text,size,x,y, display, color=WHITE):
+def draw_text(text,size,x,y, display, color="white"):
     font = get_font(size)
     text_surface = font.render(text,True, color)
     text_rect = text_surface.get_rect()

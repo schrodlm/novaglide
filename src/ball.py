@@ -1,19 +1,18 @@
 import pygame
 from pygame.math import Vector2
-import settings
 
 # --------------------------BALL-----------------------------------
 
 class Ball(pygame.sprite.Sprite):
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, config):
         pygame.sprite.Sprite.__init__(self)
-
+        self.config = config
         #radius
         self.radius = 20
 
         #ball should spawn in a middle of a field
-        self.x, self.y = settings.WIDTH/2, settings.HEIGHT/2
+        self.x, self.y = self.config["resolution"]["width"]/2, self.config["resolution"]["height"]/2
         self.speed = (x,x)
         
 
@@ -47,8 +46,8 @@ class Ball(pygame.sprite.Sprite):
 
 
     def checkAndHandleRebound(self):
-        if self.x <= 0 or self.x >= settings.WIDTH:
+        if self.x <= 0 or self.x >= self.config["resolution"]["width"]:
             self.speed.x = -self.speed.x
-        if self.y <= 0 or self.y >= settings.HEIGHT:
+        if self.y <= 0 or self.y >= self.config["resolution"]["height"]:
             self.speed.y = -self.speed.y
 

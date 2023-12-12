@@ -1,10 +1,12 @@
-import pygame 
+"""_summary_
+"""
+import pygame
 import utilities
 class Table(pygame.sprite.Sprite):
-    def __init__(self, header = "", row_size = 32,
-                top_left_coords = (640,50),font_size = 16, header_font_size = 25, n_rows = 10, cols_sizes = None,
-                lines_color = "white",contents_colors = "aqua"):
-        pygame.sprite.Sprite.__init__(self)
+    def __init__(self, config,header = "", row_size = 32,
+                top_left_coords = (640,50),font_size = 16, header_font_size = 25, n_rows = 10, cols_sizes = None):
+        self.config = config
+        super().__init__()
         self.header = header
         self.row_size = row_size
         self.top_left_coords = top_left_coords
@@ -13,8 +15,8 @@ class Table(pygame.sprite.Sprite):
         self.n_cols = len(cols_sizes)
         self.cols_sizes = cols_sizes
         self.n_rows = n_rows
-        self.lines_color = lines_color
-        self.contents_color = contents_colors
+        self.lines_color = self.config["design"]["table_lines_colour"]
+        self.contents_color = self.config["design"]["table_contents_colour"]
         self.max_x = self.top_left_coords[0] + sum(cols_sizes)
         self.max_y = self.top_left_coords[1] + n_rows * row_size
         self.text_coords_x = set()
@@ -54,5 +56,5 @@ class Table(pygame.sprite.Sprite):
             for member,coord in zip(data, self.coordinate_pairs):
                 utilities.draw_text(member, self.font_size,
                                 coord[0], coord[1],
-                                display,color="aqua")
+                                display,color=self.config["colours"]["aqua"])
         

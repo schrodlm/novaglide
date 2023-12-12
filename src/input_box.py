@@ -1,13 +1,19 @@
 import pygame
+import utilities as utilities
 pygame.init()
-COLOR_INACTIVE = pygame.Color((138, 178, 255))
-COLOR_ACTIVE = pygame.Color((49, 207, 160))
+
 FONT = pygame.font.Font(None, 32)
 
 class InputBox:
-    def __init__(self, x, y, w, h, hide, font = FONT, text=''):
+    def __init__(self, x, y, w, h, hide, config, font = FONT, text=''):
+        #accesing configuration
+        self.config = config
         self.rect = pygame.Rect(x, y, w, h)
-        self.color = COLOR_INACTIVE
+        r, g, b = self.config["design"]["input_box_inactive_colour"].values()
+        self.color_inactive = (r, g, b)
+        r, g, b = self.config["design"]["input_box_active_colour"].values()
+        self.color_active = (r, g, b)
+        self.color = self.color_inactive
         self.text = text
         self.txt_surface = font.render(text, True, self.color)
         self.active = False
@@ -23,7 +29,7 @@ class InputBox:
             else:
                 self.active = False
             # Change the current color of the input box.
-            self.color = COLOR_ACTIVE if self.active else COLOR_INACTIVE
+            self.color = self.color_active if self.active else self.color_inactive
             
         if event.type == pygame.KEYDOWN:
             if self.active:

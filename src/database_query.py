@@ -1,30 +1,13 @@
 import psycopg2
 
-# TODO: To be deleted 
-"""
-LOGIN:
-1. Establish connection to the database
-2. After pressing login with nonempty password and name:
-- Check whether the name is already present in the database
-    - if present check whether the password is correct -> launch main menu
-    - if not present add new user,pasword to database -> launch main menu
-    - otherwise wait for a correct input
-MATCH HISTORY:
-1v1 match history and 2v2 match history seperate for simplicity
-can be switched with button
-join player ids to id columns in games order them by date get 10 latest games
-determine wins acording to goals
-RANKED MENU:
-top 100 from user_data order by elo and return name and elo (again seperate 1v1 and 2v2)
-"""
-
 class DBQuery:
-    def __init__(self) -> None:
-        self.database = "novaglide_db"
-        self.user = "server"
-        self.password = "password"
-        self.host = "0.0.0.0"
-        self.port = "5432"
+    def __init__(self,config) -> None:
+        self.config = config
+        self.database = self.config["database"]["database"]
+        self.user = self.config["database"]["user"]
+        self.password = self.config["database"]["password"]
+        self.host = self.config["database"]["host"]
+        self.port = self.config["database"]["port"]
         #Establishing connection the the database
         self.connection = psycopg2.connect(database = self.database,
                 user = self.user, password = self.password,

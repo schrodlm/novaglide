@@ -1,21 +1,19 @@
 import sys
 import pygame
 import pygame.locals
-from pygame import Vector2
 from database_query import DBQuery
 from player import Player, Bot
-from ball import Ball
 from menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
 from match import Match1v1
 
 class Game():
-    def __init__(self):
+    def __init__(self, config):
         pygame.init()
         pygame.display.set_caption('Novaglide')
-
+        self.config = config
         self.running, self.playing = True,False
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
-        self.WIDTH, self.HEIGHT = 1280, 720
+        self.WIDTH, self.HEIGHT = self.config["resolution"]["width"], self.config["resolution"]["height"]
 
         self.mpos = pygame.mouse.get_pos()
 
@@ -31,7 +29,7 @@ class Game():
 
 
         self.user_credentials = {"name":"", "password":""}
-        self.query = DBQuery()
+        self.query = DBQuery(self.config)
 
         self.ttime = self.clock.tick()
         self.keys_pressed = pygame.key.get_pressed()
@@ -47,8 +45,8 @@ class Game():
 
         self.curr_menu = self.login_menu
 
-        self.player = Player(20,20)
-        self.bot = Bot(100, 100)
+        self.player = Player(20,20,self.config)
+        self.bot = Bot(100, 100,self.config)
         self.curr_match = Match1v1(self, self.player, self.bot)
 
     def start_match(self):

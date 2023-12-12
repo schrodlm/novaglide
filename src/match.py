@@ -1,8 +1,10 @@
+"""_summary_
+"""
 import pygame
-from player import Player
+from pygame import Vector2
 from ball import Ball
 
-from pygame import Vector2
+
 
 
 class Match():
@@ -29,10 +31,10 @@ class Match():
 class Match1v1(Match):
 
     def __init__(self, game, p1, p2):
-        Match.__init__(self,game)
+        super().__init__(game)
         self.p1 = p1
         self.p2 = p2
-        self.ball = Ball(400,400)
+        self.ball = Ball(400,400,self.game.config)
         self.entities.add(self.ball, self.p1, self.p2)
         self.p1.set_up(self)
         self.p2.set_up(self)

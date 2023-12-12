@@ -1,13 +1,13 @@
 import pygame
-import settings
+
 
 # --------------------------PLAYER-----------------------------------
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, x, y, radius = 40, color = "red"):
+    def __init__(self, x, y, config,radius = 40, color = "red"):
         pygame.sprite.Sprite.__init__(self)
-
+        self.config = config
         # width and height
         self.radius = radius
         self.x, self.y = x, y
@@ -40,14 +40,14 @@ class Player(pygame.sprite.Sprite):
         self.x += dx
         self.y += dy
         if self.x < 0:
-            self.x = settings.WIDTH
-        elif self.x > settings.WIDTH:
+            self.x = self.config["resolution"]["width"]
+        elif self.x > self.config["resolution"]["width"]:
             self. x = 0
         if self.y < 0:
-            self.y = settings.HEIGHT
-        elif self.y > settings.HEIGHT:
+            self.y = self.config["resolution"]["height"]
+        elif self.y > self.config["resolution"]["height"]:
             self.y = 0
-        self.setRect()        
+        self.setRect()
 
     #TODO: poradne vyresit jak se bude nastavovat pozice
     def setRect(self):
@@ -60,9 +60,9 @@ class Player(pygame.sprite.Sprite):
 
 
 class Bot(pygame.sprite.Sprite):
-    def __init__(self, x, y, radius = 40, color = "blue"):
+    def __init__(self, x, y, config,radius = 40, color = "blue"):
         pygame.sprite.Sprite.__init__(self)
-
+        self.config = config
         # width and height
         self.radius = radius
         self.x, self.y = x, y
@@ -94,12 +94,12 @@ class Bot(pygame.sprite.Sprite):
         self.x += dx
         self.y += dy
         if self.x < 0:
-            self.x = settings.WIDTH
-        elif self.x > settings.WIDTH:
+            self.x = self.config["resolution"]["width"]
+        elif self.x > self.config["resolution"]["width"]:
             self. x = 0
         if self.y < 0:
-            self.y = settings.HEIGHT
-        elif self.y > settings.HEIGHT:
+            self.y = self.config["resolution"]["height"]
+        elif self.y > self.config["resolution"]["height"]:
             self.y = 0
         self.setRect() 
 
