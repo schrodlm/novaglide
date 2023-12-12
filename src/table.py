@@ -5,8 +5,10 @@ import utilities
 class Table(pygame.sprite.Sprite):
     def __init__(self, config,header = "", row_size = 32,
                 top_left_coords = (640,50),font_size = 16, header_font_size = 25, n_rows = 10, cols_sizes = None):
+        #config, init sprite
         self.config = config
         super().__init__()
+        
         self.header = header
         self.row_size = row_size
         self.top_left_coords = top_left_coords
@@ -25,6 +27,7 @@ class Table(pygame.sprite.Sprite):
             self.text_coords_y.add(self.top_left_coords[1] + (self.row_size//2) + row*self.row_size)
         self.coordinate_pairs = []
         self.create_positions = True
+
     def update(self,display):
         if display is not None:
             utilities.draw_text(self.header, self.header_font_size,
@@ -51,7 +54,7 @@ class Table(pygame.sprite.Sprite):
         
     def insert_data(self, data, display):
         if self.create_positions:
-            self.coordinate_pairs = [(x,y) for x in sorted(self.text_coords_x) for y in sorted(self.text_coords_y)]
+            self.coordinate_pairs = [(x,y) for y in sorted(self.text_coords_y) for x in sorted(self.text_coords_x)]
         if len(data) <= self.n_rows * self.n_cols:
             for member,coord in zip(data, self.coordinate_pairs):
                 utilities.draw_text(member, self.font_size,
