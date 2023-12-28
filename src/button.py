@@ -6,6 +6,7 @@ RuntimeError
     When called as the main script and not imported
 """
 import pygame
+from typing import Tuple
 class Button(pygame.sprite.Sprite):
     """
     A class representing a button for the menu 
@@ -16,18 +17,18 @@ class Button(pygame.sprite.Sprite):
     image : pygame.Surface or None
         The image surface for the button. 
         If None, the button will use text only.
-    pos : tuple[int, int]
+    pos : Tuple[int, int]
         The position (x, y) of the button.
     text_input : str
         The text of the button.
     font : pygame.font.Font
         The font used for rendering the text.
-    base_color : str or tuple[int, int, int]
+    base_color : str or Tuple[int, int, int]
         The base color of the button when not hovered.
-        Pygame color string representation or a tuple of int from 0-255
-    hovering_color : str or tuple[int, int, int]
+        Pygame color string representation or a Tuple of int from 0-255
+    hovering_color : str or Tuple[int, int, int]
         The color of the button when hovered.
-        Pygame color string representation or a tuple of int from 0-255
+        Pygame color string representation or a Tuple of int from 0-255
 
     Attributes
     ----------
@@ -39,9 +40,9 @@ class Button(pygame.sprite.Sprite):
         The y-coordinate of the button's position.
     font : pygame.font.Font
         The font used for rendering the text.
-    base_color : str or tuple[int, int, int]
+    base_color : str or Tuple[int, int, int]
         The base color of the button when not hovered.
-    hovering_color : str or tuple[int, int, int]
+    hovering_color : str or Tuple[int, int, int]
         The color of the button when hovered.
     text_input : str
         The text of the button.
@@ -56,9 +57,9 @@ class Button(pygame.sprite.Sprite):
     -------
     update(screen: pygame.Surface) -> None:
         Updates the button on the given Pygame screen.
-    check_for_input(position: tuple[int, int]) -> bool:
+    check_for_input(position: Tuple[int, int]) -> bool:
         Checks whether the mouse is hovering over the button.
-    change_color(position: tuple[int, int]) -> None:
+    change_color(position: Tuple[int, int]) -> None:
         Changes the color of the button based on mouse hovering.
         
     Notes
@@ -66,11 +67,11 @@ class Button(pygame.sprite.Sprite):
     Inherits from pygame.sprite.Sprite.
     """
     def __init__(self, image: pygame.Surface|None, 
-                pos: tuple[int, int], 
+                pos: Tuple[int, int], 
                 text_input: str,
                 font: pygame.font.Font,
-                base_color: str|tuple[int, int, int], 
-                hovering_color: str|tuple[int, int, int]):
+                base_color: str|Tuple[int, int, int], 
+                hovering_color: str|Tuple[int, int, int]):
         #sprite init
         super().__init__()
         self.image = image
@@ -103,13 +104,13 @@ class Button(pygame.sprite.Sprite):
             screen.blit(self.image, self.rect)
         screen.blit(self.text, self.text_rect)
 
-    def check_for_input(self, position: tuple[int,int]) -> bool:
+    def check_for_input(self, position: Tuple[int,int]) -> bool:
         """
         Checks whether the mouse is hovering over the button.
 
         Parameters
         ----------
-        position : tuple[int, int]
+        position : Tuple[int, int]
             The current mouse position.
 
         Returns
@@ -124,13 +125,13 @@ class Button(pygame.sprite.Sprite):
             return True
         return False
 
-    def change_color(self, position: tuple[int,int]) -> "Button":
+    def change_color(self, position: Tuple[int,int]) -> "Button":
         """
         Changes the color of the button based on mouse hovering.
 
         Parameters
         ----------
-        position : tuple[int, int]
+        position : Tuple[int, int]
             The current mouse position.
 
         Returns

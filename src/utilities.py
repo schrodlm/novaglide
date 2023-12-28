@@ -20,10 +20,10 @@ convert_volume(volume: int) -> str:
 get_map_names(map_value: str) -> str:
     Returns the mapped name for a given map value.
 
-get_ordered_maps() -> list[str]:
-    Returns a list of file paths for ordered map resources.
+get_ordered_maps() -> List[str]:
+    Returns a List of file paths for ordered map resources.
 
-check_inside_screen(x: float|int, y: float|int):
+check_inside_screen(x: Union[float, int], y: Union[float, int]):
     Checks whether coordinates are inside the screen border.
     
 check_color_values(r: int, g: int, b: int):
@@ -44,6 +44,7 @@ Notes
 """
 import json
 import pygame
+from typing import List, Tuple, Dict, Union
 from config import Config
 from custom_exceptions import CoordinatesOutOfBoundsError, InvalidColorString
 
@@ -140,7 +141,7 @@ def get_image(name: str) -> pygame.Surface:
     else:
         raise FileNotFoundError("No resources for the specified name")
 
-def get_settings() -> dict:
+def get_settings() -> Dict:
     """
     Reads and returns a dictionary containing settings from the 
     "settings.json" file.
@@ -158,7 +159,7 @@ def get_settings() -> dict:
     try:
         with open("./../settings/settings.json",
                 encoding="UTF-8") as json_file:
-            data: dict = json.load(json_file)
+            data: Dict = json.load(json_file)
     except:
         raise FileNotFoundError("Failed to load settings, check the path")
     return data
@@ -229,14 +230,14 @@ def get_map_names(map_value: str) -> str:
     else:
         raise KeyError("Incorrect path, no name for this map path")
 
-def get_ordered_maps() -> list:
+def get_ordered_maps() -> List:
     """
-    Returns a list of file paths for ordered map resources.
+    Returns a List of file paths for ordered map resources.
 
     Returns
     -------
-    list[str]
-        A list of file paths for ordered map resources.
+    List[str]
+        A List of file paths for ordered map resources.
 
     Notes
     -----
@@ -248,7 +249,7 @@ def get_ordered_maps() -> list:
                     "./../resources/rink_bg_3.jpg"]
     return maps_ordered
 
-def check_inside_screen(x: float|int, y: float|int):
+def check_inside_screen(x: Union[float, int], y: Union[float, int]):
     """Function that checks whether coordinates do not exceed bounds.
 
     Parameters

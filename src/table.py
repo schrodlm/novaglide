@@ -2,6 +2,7 @@
 """
 import pygame
 import utilities
+from typing import Tuple, List
 from config import Config
 class Table(pygame.sprite.Sprite):
     """
@@ -71,9 +72,9 @@ class Table(pygame.sprite.Sprite):
         Inserts data into the table and renders it on the display.
     """
     def __init__(self, config: Config,header: str = "", row_size: int = 32,
-                top_left_coords: tuple[int,int]= (640,50),font_size: int = 16, 
+                top_left_coords: Tuple[int,int]= (640,50),font_size: int = 16, 
                 header_font_size: int = 25, n_rows: int = 10, 
-                cols_sizes: list[int]= []):
+                cols_sizes: List[int]= []):
         #config, init sprite
         self.config = config
         super().__init__()
