@@ -3,7 +3,7 @@
 
 #commands to run in the Docker container before starting each job.
 
-image: "python:3.8.18" 
+image: "python:3.10.0" 
 before_script:
   - python --version
   - pip install -r requirements.txt

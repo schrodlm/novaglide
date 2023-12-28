@@ -44,7 +44,7 @@ Notes
 """
 import json
 import pygame
-from typing import List, Tuple, Dict, Union
+from typing import List, Dict, Union
 from config import Config
 from custom_exceptions import CoordinatesOutOfBoundsError, InvalidColorString
 
