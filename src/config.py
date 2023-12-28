@@ -6,7 +6,6 @@ RuntimeError
     When called as the main script and not imported
 """
 import yaml
-from typing import Any
 class Config:
     """
     Config class for managing configuration settings.
