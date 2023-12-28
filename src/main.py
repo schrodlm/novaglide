@@ -1,7 +1,7 @@
 """_summary_
 """
 from game import Game
-from config import Config
+from configuration_mod import Config
 
 def main():
     """client side loop

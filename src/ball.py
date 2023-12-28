@@ -1,6 +1,6 @@
 import pygame
 from pygame.math import Vector2
-from config import Config
+from configuration_mod import Config
 # --------------------------BALL-----------------------------------
 
 class Ball(pygame.sprite.Sprite):
