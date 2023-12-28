@@ -98,9 +98,9 @@ class LogInMenu(Menu):
         for box in self.input_boxes:
             box.draw_updated(self.game.display)
     def draw_error(self, message):
-            utilities.draw_text(message, 30,
-                self.mid_x, 550, self.game.display,
-                self.game.config["colours"]["black"])
+        utilities.draw_text(message, 30,
+            self.mid_x, 550, self.game.display,
+            self.game.config["colours"]["black"])
 
 class MainMenu(Menu):
     def __init__(self,game):
