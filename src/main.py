@@ -4,7 +4,7 @@ from game import Game
 from config import Config
 
 def main():
-    """_summary_
+    """client side loop
     """
     config = Config()
     g = Game(config = config.config)

@@ -7,12 +7,13 @@ import sys
 import json
 import pygame
 import utilities
+from abc import ABC, abstractmethod
 from input_box import InputBox
 from button import Button
 from table import Table
 from player import Player
 
-class Menu():
+class Menu(ABC):
     def __init__(self,game):
         self.game = game
         self.run_display = True
@@ -23,10 +24,20 @@ class Menu():
         self.game.screen.blit(self.game.display,(0,0))
         pygame.display.update()
         self.game.reset_keys()
+    
+    #ensuring that all menus implement these methods,
+    #to make the API consistent
+    @abstractmethod
+    def display_menu(self):
+        pass
+    @abstractmethod
+    def check_events(self):
+        pass
+
 
 class LogInMenu(Menu):
     def __init__(self, game):
-        Menu.__init__(self,game)
+        super().__init__(game)
         # log in button
         self.log_in_button = Button(image=None, pos=(self.mid_x, 460),
                                 text_input="LOG IN", font=utilities.get_font(75),
@@ -45,7 +56,7 @@ class LogInMenu(Menu):
         self.password_input.text = ""
         self.run_display = True
         while self.run_display:
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.game.display.fill((0,0,0))
             # draw background
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
@@ -92,7 +103,7 @@ class LogInMenu(Menu):
                     self.mid_x, 550, self.game.display, self.game.config["colours"]["black"])
 class MainMenu(Menu):
     def __init__(self,game):
-        Menu.__init__(self,game)
+        super().__init__(game)
         self.buttons = pygame.sprite.Group()
         hovering_color = self.game.config["design"]["hovering_colour"]
         self.play_1v1_button = Button(image=None, pos=(self.mid_x, 300),
@@ -137,7 +148,7 @@ class MainMenu(Menu):
         self.run_display = True
         while self.run_display:
             #tick and fill new background
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.game.display.fill((0,0,0))
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
             #need to regenerate every time because the name is dynamically changing
@@ -196,7 +207,7 @@ class MainMenu(Menu):
 
 class SettingsMenu(Menu):
     def __init__(self,game):
-        Menu.__init__(self,game)
+        super().__init__(game)
         #load settings JSON
         self.loaded_settings = utilities.get_settings()
         self.music = self.loaded_settings["Music"]
@@ -273,7 +284,7 @@ class SettingsMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.check_events()
             self.game.display.fill((0,0,0))
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
@@ -384,17 +395,17 @@ class RankedMenu(Menu):
         #challenger table buttons
         #will change the preview (1-10,11-20,... up to 100)
         self.challenger_table_button_left_arrow = Button(image=utilities.get_image("left_arrow"),
-                                    pos=(int(((self.challenger_table.max_x -
+                                    pos=(int((((self.challenger_table.max_x -
                                     self.challenger_table.top_left_coords[0]) // 2)
-                                    + self.challenger_table.top_left_coords[0]) - 150,
-                                    self.challenger_table.top_left_coords[1] - 20, 170),
+                                    + self.challenger_table.top_left_coords[0]) - 150),
+                                    self.challenger_table.top_left_coords[1] - 20),
                                     text_input="", font=utilities.get_font(40),
                                     base_color=self.game.config["colours"]["black"], hovering_color=self.game.config["design"]["hovering_colour"])
         self.challenger_table_right_arrow = Button(image=utilities.get_image("right_arrow"),
-                                    pos=(int(((self.challenger_table.max_x -
+                                    pos=(int((((self.challenger_table.max_x -
                                     self.challenger_table.top_left_coords[0]) // 2)
-                                    + self.challenger_table.top_left_coords[0]) + 150,
-                                    self.challenger_table.top_left_coords[1] - 20, 170),
+                                    + self.challenger_table.top_left_coords[0]) + 150),
+                                    self.challenger_table.top_left_coords[1] - 20),
                                     text_input="", font=utilities.get_font(40),
                                     base_color=self.game.config["colours"]["black"], hovering_color=self.game.config["design"]["hovering_colour"])
         self.elements.add(self.back_button_rm)
@@ -406,25 +417,36 @@ class RankedMenu(Menu):
         ys = [465,460,420,421,420,415]
         intervals = ["<1000","<2000","<4000","<6000",">= 8000","TOP 100"]
         for name, interval, x, y in zip(names, intervals, xs, ys):
-            utilities.draw_text(name, 25, x, y, self.game.display,color=self.game.config["colours"]["aqua"])
-            utilities.draw_text(interval, 15, x, y + 20, self.game.display,color=self.game.config["colours"]["aqua"])
+            utilities.draw_text(name, 25, x, y,
+                                self.game.display,
+                                color=self.game.config["colours"]["aqua"])
+            utilities.draw_text(interval, 15, x, y + 20,
+                                self.game.display,
+                                color=self.game.config["colours"]["aqua"])
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.check_events()
             # draw background
-            r, g, b = self.game.config["design"]["ranked_background_colour"].values()
+            r, g, b = (self.game.config["design"]
+                    ["ranked_background_colour"].values())
             self.game.display.fill((r, g, b))
             #draw trophies on the screen
             self.game.display.blit(utilities.get_image("ranks"), (0,400))
             #draw player and his stats
-            utilities.draw_text("Your stats", 35, 470, 130, self.game.display,color=self.game.config["colours"]["aqua"])
-            utilities.draw_text(f"ELO:   {self.elo}", 35, 470, 200, self.game.display,color=self.game.config["colours"]["aqua"])
+            utilities.draw_text("Your stats", 35, 470, 130, 
+                                self.game.display,
+                                color=self.game.config["colours"]["aqua"])
+            utilities.draw_text(f"ELO:   {self.elo}", 35, 470, 200, 
+                                self.game.display,
+                                color=self.game.config["colours"]["aqua"])
             utilities.draw_text(self.division, 35, 470, 270,
-                            self.game.display,color=self.game.config["colours"]["aqua"])
+                            self.game.display,
+                            color=self.game.config["colours"]["aqua"])
             utilities.draw_text(self.winrate, 35, 470, 340,
-                            self.game.display,color=self.game.config["colours"]["aqua"])
+                            self.game.display,
+                            color=self.game.config["colours"]["aqua"])
             self.game.display.blit(self.player_preview.image, self.player_preview.rect)
             #draw names
             self.draw_ranked_names(["WOODEN", "IRON", "BRONZE", "SILVER", "GOLD", "CHALLENGER"])
@@ -491,7 +513,7 @@ class MatchHistoryMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.check_events()
             self.game.display.fill((0,0,0))
             if self.draw_solo:

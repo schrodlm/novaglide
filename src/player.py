@@ -106,3 +106,6 @@ class Bot(pygame.sprite.Sprite):
     def setRect(self):
         self.rect = pygame.Rect(self.x - self.radius, self.y - self.radius,
                                 2 * self.radius, 2 * self.radius)
+        
+if __name__ == "__main__":
+    raise RuntimeError("This module is designed for import only.")
