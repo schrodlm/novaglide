@@ -1,4 +1,4 @@
-"""_summary_
+"""Main top-level script that runs the client.
 """
 from game import Game
 from configuration_mod import Config

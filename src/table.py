@@ -1,8 +1,8 @@
 """A Table module, provides simple table for the application.
 """
+from typing import Tuple, List
 import pygame
 import utilities
-from typing import Tuple, List
 from configuration_mod import Config
 class Table(pygame.sprite.Sprite):
     """

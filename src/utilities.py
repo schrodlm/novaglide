@@ -29,7 +29,7 @@ check_inside_screen(x: Union[float, int], y: Union[float, int]):
 check_color_values(r: int, g: int, b: int):
     Checks whether coordinates are inside the screen border.
 
-check_string_color_posibility(color: str):
+check_string_color_posibility(color: str) -> None:
     Checks whether the string representation of color is available in pygame.
 Raises
 ------
@@ -42,11 +42,11 @@ Notes
 - Paths for fonts, images, and settings files are hardcoded and should be adjusted accordingly.
 - This module is designed to work in conjunction with a Pygame application.
 """
+from typing import List, Dict, Union
 import json
 import pygame
-from typing import List, Dict, Union
 from configuration_mod import Config
-from custom_exceptions import CoordinatesOutOfBoundsError, InvalidColorString
+from custom_exceptions import OutOfBoundsError, InvalidColorString
 
 def get_font(size: int) -> pygame.font.Font:
     """
@@ -244,7 +244,7 @@ def get_ordered_maps() -> List:
     The file paths are hardcoded and should be adjusted if the map 
     files are located in a different directory.
     """
-    maps_ordered = ["./../resources/rink_bg_1.jpg", 
+    maps_ordered = ["./../resources/rink_bg_1.jpg",
                     "./../resources/rink_bg_2.jpg", 
                     "./../resources/rink_bg_3.jpg"]
     return maps_ordered
@@ -260,7 +260,7 @@ def check_inside_screen(x: Union[float, int], y: Union[float, int]):
         Y coordinate
     Raises
     ------
-    CoordinatesOutOfBoundsError
+    OutOfBoundsError
         If the coordinates exceed the size of the screen  
         
     """
@@ -268,7 +268,7 @@ def check_inside_screen(x: Union[float, int], y: Union[float, int]):
     max_x = config.config["resolution"]["width"]
     max_y = config.config["resolution"]["height"]
     if x < 0 or y <0 or x > max_x or y > max_y:
-        raise CoordinatesOutOfBoundsError()
+        raise OutOfBoundsError()
     
 def check_color_values(r: int, g: int, b: int):
     """Function that checks whether coordinates do not exceed bounds.
@@ -286,16 +286,33 @@ def check_color_values(r: int, g: int, b: int):
     ------
     ValueError
         When either of the components is not an integer
-    CoordinatesOutOfBoundsError
+    OutOfBoundsError
         If either of the values exceeds 0-255 range
     """
     for component in (r,g,b): 
         if not isinstance(component, int):
             raise ValueError("The components need to be specified as integers")
     if (r < 0 or g < 0 or b < 0)  or (r > 255 or g > 255 or b > 255):
-        raise CoordinatesOutOfBoundsError("Colors exceed 0-255 range")
+        raise OutOfBoundsError("Colors exceed 0-255 range")
 
-def check_string_color_posibility(color: str):
+def check_string_color_posibility(color: str) -> None:
+    """
+    Check if a given color string is a valid color in pygame.
+
+    Parameters
+    ----------
+    color : str
+        The color string to check.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    The function checks whether the input color string is present in the
+    official string representation of colors from the pygame GitHub repository.
+    """
     #oficial string representation of colors from pygame Github
     THECOLORS = {
     "aliceblue": (240, 248, 255, 255),

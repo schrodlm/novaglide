@@ -1,10 +1,10 @@
 """Module containing custom exceptions for the game.
 """
 
-class CoordinatesOutOfBoundsError(Exception):
+class OutOfBoundsError(Exception):
     """
-    Custom exception class for handling cases where x or y coordinates 
-    are outside the pygame window size.
+    Custom exception class for handling cases where values exceed 
+    expected range.
 
     Parameters
     ----------
