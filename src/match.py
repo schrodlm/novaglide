@@ -38,6 +38,11 @@ class Match():
 
         self.font = pygame.font.Font(None, 36)
 
+         # Initialize the match timer
+        self.match_duration = 10  # 5 minutes in seconds
+        self.start_time = pygame.time.get_ticks()  # Get the current time in milliseconds
+
+
 
 class Match1v1(Match):
 
@@ -76,6 +81,12 @@ class Match1v1(Match):
         # Draw the playfield border
         border_thickness = 5
         pygame.draw.rect(self.display, (255, 255, 255), self.border, border_thickness)
+
+         # Display the timer
+        elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000
+        remaining_time = max(self.match_duration - elapsed_time, 0)
+        timer_surface = self.font.render(f"Time Left: {int(remaining_time)}s", True, (255, 255, 255))
+        self.display.blit(timer_surface, (10, 10))  # Adjust position as needed
 
     
     def check_events(self):
@@ -126,8 +137,28 @@ class Match1v1(Match):
             self.ball.speed = collision_normal * speed_magnitude
     
 
+    def end_match(self):
+        # Determine the winner based on the score
+        if self.score[0] > self.score[1]:
+            winner = "Player 1 wins!"
+        elif self.score[0] < self.score[1]:
+            winner = "Player 2 wins!"
+        else:
+            winner = "It's a tie!"
+
+        # Display the result (you can also create a separate method for this)
+        print(winner)  # Or use a more sophisticated method to display the result on the screen
+
+        # Stop the game loop
+        self.playing = False
+
     def match_loop(self):
         # main game loop
             self.check_events()
             self.update_game_state()
             self.draw()
+
+             # Update the timer
+            elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000  # Convert milliseconds to seconds
+            if elapsed_time >= self.match_duration:
+                self.end_match()
