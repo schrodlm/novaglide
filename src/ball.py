@@ -1,11 +1,11 @@
 import pygame
 from pygame.math import Vector2
-
+from configuration_mod import Config
 # --------------------------BALL-----------------------------------
 
 class Ball(pygame.sprite.Sprite):
 
-    def __init__(self, x, y, config):
+    def __init__(self, x: float, y: float, config: Config):
         pygame.sprite.Sprite.__init__(self)
         self.config = config
         #radius
@@ -13,7 +13,7 @@ class Ball(pygame.sprite.Sprite):
 
         #ball should spawn in a middle of a field
         self.x, self.y = self.config["resolution"]["width"]/2, self.config["resolution"]["height"]/2
-        self.speed = (x,x)
+        self.speed = (x, y)
         
 
         self.rect = pygame.Rect(x - self.radius, y - self.radius,
@@ -51,3 +51,5 @@ class Ball(pygame.sprite.Sprite):
         if self.y <= 0 or self.y >= self.config["resolution"]["height"]:
             self.speed.y = -self.speed.y
 
+if __name__ == "__main__":
+    raise RuntimeError("This module is designed for import only.")

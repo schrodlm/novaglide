@@ -1,3 +1,11 @@
+"""Module containing the Game object which acts as a top-level 
+game menu switch.
+Raises
+------
+RuntimeError
+    When called as the main script and not imported
+"""
+
 import sys
 import pygame
 import pygame.locals
@@ -81,12 +89,11 @@ class Game():
                     self.UP_KEY = True
 
     def Tick(self):
-        #TODO: přidano i do init? pylint to nefeeluje mimo něj
         self.ttime = self.clock.tick()
         self.mpos = pygame.mouse.get_pos()
         self.keys_pressed = pygame.key.get_pressed()
  
-    def Check_inputs(self):
+    def check_inputs(self):
         #TODO:menu needs to update keyboard and mouse input but should not tick the game clock
         #write different Tick_menu() without self.ttime? idk yet
         self.mpos = pygame.mouse.get_pos()
@@ -95,3 +102,6 @@ class Game():
     def Draw(self):   
         self.screen.blit(self.display, (0,0))
         pygame.display.update()
+
+if __name__ == "__main__":
+    raise RuntimeError("This module is designed for import only.")

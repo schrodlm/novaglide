@@ -1,10 +1,10 @@
-"""_summary_
+"""Main top-level script that runs the client.
 """
 from game import Game
-from config import Config
+from configuration_mod import Config
 
 def main():
-    """_summary_
+    """client side loop
     """
     config = Config()
     g = Game(config = config.config)

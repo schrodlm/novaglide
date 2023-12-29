@@ -1,67 +1,160 @@
-"""_summary_
-
-Returns:
-    _type_: _description_
-"""
 import sys
 import json
 import pygame
 import utilities
+from abc import ABC, abstractmethod
 from input_box import InputBox
 from button import Button
 from table import Table
 from player import Player
 
-class Menu():
-    def __init__(self,game):
+class Menu(ABC):
+    """
+    Abstract base class for game menus.
+
+    Parameters
+    ----------
+    game : Game
+        The main game instance.
+        
+    Attributes
+    ----------
+    game : Game
+        The main game instance.
+    run_display : bool
+        Flag to control the menu display loop.
+    mid_x : int
+        The x-coordinate of the center of the screen.
+    mid_y : int
+        The y-coordinate of the center of the screen.
+
+    Methods
+    -------
+    blit_screen() -> "Menu":
+        Blits the screen and updates display.
+    display_menu():
+        Abstract method to display the menu.
+    check_events()
+        Abstract method to handle menu-specific events.
+    """
+
+    def __init__(self, game) -> None:
         self.game = game
         self.run_display = True
         self.mid_x = self.game.WIDTH // 2
         self.mid_y = self.game.HEIGHT // 2
 
-    def blit_screen(self):
+    def blit_screen(self) -> "Menu":
+        """
+        Blit the screen and update the display.
+        """
         self.game.screen.blit(self.game.display,(0,0))
         pygame.display.update()
         self.game.reset_keys()
+        return self
+
+    #ensuring that all menus implement these methods,
+    #to make the API consistent
+    @abstractmethod
+    def display_menu(self):
+        """
+        Abstract method to display the menu.
+        """
+    @abstractmethod
+    def check_events(self):
+        """
+        Abstract method to handle menu-specific events.
+        """
+
 
 class LogInMenu(Menu):
+    """
+    Menu for user login screen.
+
+    Parameters
+    ----------
+    game : Game
+        The main game instance.
+    
+    Attributes
+    ----------
+    log_in_button : Button
+        Button for logging in.
+    username_input : InputBox
+        Input box for the username.
+    password_input : InputBox
+        Input box for the password.
+    input_boxes : list
+        List of input boxes.
+    error_present : bool
+        Flag indicating if login error is present.
+    allow : str
+        Permission level after login attempt.
+    ignore_check_event : bool
+        Flag to ignore check_event during login.
+
+    Methods
+    -------
+    display_menu()
+        Display the login menu.
+    check_events()
+        Handle events in the login menu.
+    draw_error(message: str)
+        Draw error message on the screen.
+    """
     def __init__(self, game):
-        Menu.__init__(self,game)
+        #init parent
+        super().__init__(game)
         # log in button
         self.log_in_button = Button(image=None, pos=(self.mid_x, 460),
-                                text_input="LOG IN", font=utilities.get_font(75),
-                                base_color="black", hovering_color="aqua")
+                                text_input="LOG IN",
+                                font=utilities.get_font(75),
+                                base_color="black",
+                                hovering_color="aqua")
         # initializing input boxes for username and password
-        self.username_input = InputBox(x = 440, y = 200, w = 400, h = 70, hide = False, config=self.game.config)
-        self.password_input = InputBox(x = 440, y = 300, w = 400, h = 70, hide = True, config=self.game.config)
+        self.username_input = InputBox(x = 440, y = 200, w = 400, h = 70,
+                                       hide = False, config=self.game.config)
+        self.password_input = InputBox(x = 440, y = 300, w = 400, h = 70,
+                                       hide = True, config=self.game.config)
         # group same objects
         self.input_boxes = [self.username_input, self.password_input]
         self.error_present = False
         self.allow = None
         self.ignore_check_event = False
-        
-    def display_menu(self):
+
+    def display_menu(self) -> "LogInMenu":
+        """
+        Display the login menu.
+        """
+        #reset input box text
         self.username_input.text = ""
         self.password_input.text = ""
+        #TODO: logout from the server
         self.run_display = True
         while self.run_display:
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.game.display.fill((0,0,0))
             # draw background
-            self.game.display.blit(utilities.get_image("background_main"), (0, 0))
+            self.game.display.blit(utilities.get_image("background_main"),
+                                   (0, 0))
             #draw instructions
-            utilities.draw_text("Login with your nickname and password", 30,
-                                self.mid_x, 150, self.game.display,self.game.config["colours"]["black"])
+            utilities.draw_text("Login with your nickname and password",
+                                30,
+                                self.mid_x,
+                                150,
+                                self.game.display,
+                                self.game.config["colours"]["black"])
             if self.allow is not None and self.error_present:
                 self.draw_error(self.allow)
-            
-            self.log_in_button.change_color(self.game.mpos)
-            self.log_in_button.update(self.game.display)
-            self.check_events()
-            # draw input boxes on the screen
-            self.blit_screen()
+            self.log_in_button.change_color(self.game.mpos).update(self.game.
+                                                            display)
+            self.check_events().blit_screen()
+        return self
 
-    def check_events(self):
+    def check_events(self) -> "LogInMenu":
+        """
+        Handle events in the login menu.
+        """
         for event in pygame.event.get():
             # closing the game with mouse
             if event.type == pygame.QUIT:
@@ -69,30 +162,43 @@ class LogInMenu(Menu):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.log_in_button.check_for_input(self.game.mpos):
-                    allowed = self.game.query.allow_user_credentials(self.username_input.text,self.password_input.text)
+                    allowed = self.game.query.allow_user_credentials(self.
+                                    username_input.text,
+                                    self.password_input.text)
                     if allowed is not None:
                         self.allow = allowed
-                    match self.allow:
-                        case "known user" | "registering new user":
-                            self.error_present = False
-                            self.allow = None
-                            self.run_display = False
-                            self.game.curr_menu = self.game.main_menu
-                            self.game.user_credentials["name"] = self.username_input.text
-                            self.game.user_credentials["password"] = self.password_input.text
-                            break
-                        case "Make sure to fill both name and password" | "Incorrect password for this username":
-                            self.error_present = True
+                    if self.allow in ("known user", "registering new user"):
+                        self.error_present = False
+                        self.allow = None
+                        self.run_display = False
+                        self.game.curr_menu = self.game.main_menu
+                        self.game.user_credentials["name"] = self.username_input.text
+                        self.game.user_credentials["password"] = self.password_input.text
+                        break
+                    else:
+                        self.error_present = True
             for box in self.input_boxes:
                 box.handle_event(event)
         for box in self.input_boxes:
             box.draw_updated(self.game.display)
+        return self
+
     def draw_error(self, message):
-            utilities.draw_text(message, 30,
-                    self.mid_x, 550, self.game.display, self.game.config["colours"]["black"])
+        """
+        Draw error message on the screen.
+
+        Parameters
+        ----------
+        message : str
+            The error message to be displayed.
+        """
+        utilities.draw_text(message, 30,
+            self.mid_x, 550, self.game.display,
+            self.game.config["colours"]["black"])
+
 class MainMenu(Menu):
     def __init__(self,game):
-        Menu.__init__(self,game)
+        super().__init__(game)
         self.buttons = pygame.sprite.Group()
         hovering_color = self.game.config["design"]["hovering_colour"]
         self.play_1v1_button = Button(image=None, pos=(self.mid_x, 300),
@@ -137,7 +243,7 @@ class MainMenu(Menu):
         self.run_display = True
         while self.run_display:
             #tick and fill new background
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.game.display.fill((0,0,0))
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
             #need to regenerate every time because the name is dynamically changing
@@ -196,7 +302,7 @@ class MainMenu(Menu):
 
 class SettingsMenu(Menu):
     def __init__(self,game):
-        Menu.__init__(self,game)
+        super().__init__(game)
         #load settings JSON
         self.loaded_settings = utilities.get_settings()
         self.music = self.loaded_settings["Music"]
@@ -273,7 +379,7 @@ class SettingsMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.check_events()
             self.game.display.fill((0,0,0))
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))
@@ -378,23 +484,23 @@ class RankedMenu(Menu):
                             text_input="", font=utilities.get_font(40),
                             base_color=(133, 88, 255), hovering_color=self.game.config["colours"]["aqua"])
         self.elo, self.division = self.get_my_elo()
-        self.player_preview = Player(170,250, self.game.config,100)
+        self.player_preview = Player(170,250, self.game.config,70)
         self.winrate = self.get_winrate()
         self.challenger_table = Table(self.game.config,header="CHALLENGERS",cols_sizes=[50,350,100,120])
         #challenger table buttons
         #will change the preview (1-10,11-20,... up to 100)
         self.challenger_table_button_left_arrow = Button(image=utilities.get_image("left_arrow"),
-                                    pos=(int(((self.challenger_table.max_x -
+                                    pos=(int((((self.challenger_table.max_x -
                                     self.challenger_table.top_left_coords[0]) // 2)
-                                    + self.challenger_table.top_left_coords[0]) - 150,
-                                    self.challenger_table.top_left_coords[1] - 20, 170),
+                                    + self.challenger_table.top_left_coords[0]) - 150),
+                                    self.challenger_table.top_left_coords[1] - 20),
                                     text_input="", font=utilities.get_font(40),
                                     base_color=self.game.config["colours"]["black"], hovering_color=self.game.config["design"]["hovering_colour"])
         self.challenger_table_right_arrow = Button(image=utilities.get_image("right_arrow"),
-                                    pos=(int(((self.challenger_table.max_x -
+                                    pos=(int((((self.challenger_table.max_x -
                                     self.challenger_table.top_left_coords[0]) // 2)
-                                    + self.challenger_table.top_left_coords[0]) + 150,
-                                    self.challenger_table.top_left_coords[1] - 20, 170),
+                                    + self.challenger_table.top_left_coords[0]) + 150),
+                                    self.challenger_table.top_left_coords[1] - 20),
                                     text_input="", font=utilities.get_font(40),
                                     base_color=self.game.config["colours"]["black"], hovering_color=self.game.config["design"]["hovering_colour"])
         self.elements.add(self.back_button_rm)
@@ -406,29 +512,47 @@ class RankedMenu(Menu):
         ys = [465,460,420,421,420,415]
         intervals = ["<1000","<2000","<4000","<6000",">= 8000","TOP 100"]
         for name, interval, x, y in zip(names, intervals, xs, ys):
-            utilities.draw_text(name, 25, x, y, self.game.display,color=self.game.config["colours"]["aqua"])
-            utilities.draw_text(interval, 15, x, y + 20, self.game.display,color=self.game.config["colours"]["aqua"])
+            utilities.draw_text(name, 25, x, y,
+                                self.game.display,
+                                color=self.game.config["colours"]["aqua"])
+            utilities.draw_text(interval, 15, x, y + 20,
+                                self.game.display,
+                                color=self.game.config["colours"]["aqua"])
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.check_events()
             # draw background
-            r, g, b = self.game.config["design"]["ranked_background_colour"].values()
+            r, g, b = (self.game.config["design"]
+                    ["ranked_background_colour"].values())
             self.game.display.fill((r, g, b))
             #draw trophies on the screen
+            border = pygame.transform.scale_by(utilities.get_image(self.division),0.4)
             self.game.display.blit(utilities.get_image("ranks"), (0,400))
             #draw player and his stats
-            utilities.draw_text("Your stats", 35, 470, 130, self.game.display,color=self.game.config["colours"]["aqua"])
-            utilities.draw_text(f"ELO:   {self.elo}", 35, 470, 200, self.game.display,color=self.game.config["colours"]["aqua"])
+            utilities.draw_text("Your stats", 35, 470, 130, 
+                                self.game.display,
+                                color=self.game.config["colours"]["aqua"])
+            utilities.draw_text(f"ELO:   {self.elo}", 35, 470, 200, 
+                                self.game.display,
+                                color=self.game.config["colours"]["aqua"])
             utilities.draw_text(self.division, 35, 470, 270,
-                            self.game.display,color=self.game.config["colours"]["aqua"])
+                            self.game.display,
+                            color=self.game.config["colours"]["aqua"])
             utilities.draw_text(self.winrate, 35, 470, 340,
-                            self.game.display,color=self.game.config["colours"]["aqua"])
+                            self.game.display,
+                            color=self.game.config["colours"]["aqua"])
             self.game.display.blit(self.player_preview.image, self.player_preview.rect)
             #draw names
             self.draw_ranked_names(["WOODEN", "IRON", "BRONZE", "SILVER", "GOLD", "CHALLENGER"])
             self.elements.update(self.game.display)
+            #hardcoded coordinates because of different sizes of the pictures
+            border_coordinates = {"WOODEN":80, "IRON":95, "BRONZE":95, "SILVER":105, "GOLD":120, "CHALLENGER":130}
+            self.game.display.blit(border,
+                        (self.player_preview.x - border_coordinates[self.division] + 3,
+                         self.player_preview.y-border_coordinates[self.division]))
+
             #TODO: to be changed to real data from database, just for testing now
             self.challenger_table.insert_data(data = self.get_challengers(), display=self.game.display)
             self.challenger_table.create_positions = False
@@ -491,7 +615,7 @@ class MatchHistoryMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.check_events()
             self.game.display.fill((0,0,0))
             if self.draw_solo:
@@ -572,3 +696,6 @@ class CreditsMenu(Menu):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE:
                     self.game.BACK_KEY = True
+                    
+if __name__ == "__main__":
+    raise RuntimeError("This module is designed for import only.")

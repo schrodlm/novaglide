@@ -44,7 +44,6 @@ suggestion-mode=yes
 # active Python interpreter and may run arbitrary code.
 unsafe-load-any-extension=yes
 
-
 [MESSAGES CONTROL]
 
 # Only show warnings with the listed confidence levels. Leave empty to show
@@ -578,3 +577,4 @@ valid-metaclass-classmethod-first-arg=cls
 # "BaseException, Exception".
 overgeneral-exceptions=BaseException,
                        Exception
+
