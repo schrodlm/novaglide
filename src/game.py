@@ -6,6 +6,7 @@ from player import Player, Bot
 from menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
 from match import Match1v1
 from ball import Ball
+from endscreen import EndScreenMenu
 
 class Game():
     def __init__(self, config):
@@ -43,22 +44,31 @@ class Game():
         self.login_menu = LogInMenu(self)
         self.ranked_menu = RankedMenu(self)
         self.match_history_menu = MatchHistoryMenu(self)
+        self.endscreen_menu = EndScreenMenu(self, "test2")
 
         self.curr_menu = self.login_menu
 
-        self.player = Player(20,20,self.config)
-        self.bot = Bot(100, 100,self.config)
-        self.ball = Ball(400,400,self.config)
-        self.curr_match = Match1v1(self.display, self.player, self.bot, self.ball)
+
 
     def start_match(self):
-        #self.curr_match = self.match_creator.create_match()
         
-        while self.play_match is True:
-            self.curr_match.match_loop()
+        player = Player(20,20,self.config)
+        bot = Bot(100, 100,self.config)
+        ball = Ball(400,400,self.config)
+    
+        curr_match = Match1v1(self.display, player, bot, ball)
+
+        
+        while curr_match.playing is True:
+            curr_match.match_loop()
             self.Draw()
             self.Tick()
             self.reset_keys()
+
+        self.play_match = False
+        self.curr_menu = EndScreenMenu(self, "test")
+        
+        
     
 
     def game_loop(self):
