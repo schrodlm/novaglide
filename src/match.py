@@ -27,6 +27,22 @@ class Match():
         self.playing = True
 
 
+         # Define goals as rectangles
+        goal_width = 20  # Width of the goal, adjust as needed
+        goal_height = 100  # Height of the goal, adjust as needed
+        self.goal1 = pygame.Rect(0, (self.display.get_height() - goal_height) // 2, goal_width, goal_height)
+        self.goal2 = pygame.Rect(self.display.get_width() - goal_width, (self.display.get_height() - goal_height) // 2, goal_width, goal_height)
+
+         # Define borders
+        self.borders = [
+            pygame.Rect(0, 0, self.display.get_width(), 5),  # Top border
+            pygame.Rect(0, 0, 5, self.display.get_height()),  # Left border
+            pygame.Rect(0, self.display.get_height() - 5, self.display.get_width(), 5),  # Bottom border
+            pygame.Rect(self.display.get_width() - 5, 0, 5, self.display.get_height())  # Right border
+        ]
+
+        self.font = pygame.font.Font(None, 36)
+
 
 class Match1v1(Match):
 
@@ -41,6 +57,72 @@ class Match1v1(Match):
 
     def draw(self):
         self.display.fill((150,150,150))
+        
+        # Render and draw the score
+        score_text = f"{self.score[0]} - {self.score[1]}"
+        score_surface = self.font.render(score_text, True, (255, 255, 255))  # White text
+        score_x = self.display.get_width() // 2 - score_surface.get_width() // 2
+        score_y = 10  # 10 pixels from the top
+        self.display.blit(score_surface, (score_x, score_y))
+
+        self.dt = self.clock.tick(60) / 1000
+        self.p1.update(self.dt)
+        self.p2.update(self.dt)
+        self.ball.update()
+
+        for e in self.entities: #update blocks etc.
+            self.display.blit(e.image, e.rect)
+        
+
+            # Draw goals
+        pygame.draw.rect(self.display, (255, 255, 255), self.goal1)  # White goal
+        pygame.draw.rect(self.display, (255, 255, 255), self.goal2)  # White goal
+
+        # Draw borders
+        for border in self.borders:
+            pygame.draw.rect(self.display, (255, 255, 255), border)  # White border
+
+    
+    def check_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+    def reset_ball(self):
+        center_x = self.display.get_width() // 2
+        center_y = self.display.get_height() // 2
+        self.ball.x = center_x
+        self.ball.y = center_y
+
+        # Reset the ball's speed
+        # You can set this to an initial speed or to zero
+        self.ball.speed = Vector2(0, 0)
+
+        # Update the ball's rect to reflect the new position
+        self.ball.setRect()
+
+
+    def update_game_state(self):
+
+    # Check for ball collision with goals
+        if self.goal1.colliderect(self.ball.rect):
+            # Ball has entered goal 1
+            # Update score and reset ball position, etc.
+            self.score = (self.score[0], self.score[1] + 1)
+            self.reset_ball()
+
+        if self.goal2.colliderect(self.ball.rect):
+            # Ball has entered goal 2, increment score for player 1
+            self.score = (self.score[0] + 1, self.score[1])
+            self.reset_ball()
+
+        # Check for ball collision with borders
+        for border in self.borders:
+            if border.colliderect(self.ball.rect):
+                # Handle ball bouncing off the border
+                # This might involve reversing the ball's direction or repositioning it
+                pass
+        
         if pygame.sprite.collide_circle(self.p1,self.ball) or pygame.sprite.collide_circle(self.p2,self.ball) :
             # 1. Calculate the collision normal
             if pygame.sprite.collide_circle(self.p1, self.ball):
@@ -54,21 +136,9 @@ class Match1v1(Match):
             speed_magnitude = 20  # You can adjust this value as needed
             self.ball.speed = collision_normal * speed_magnitude
     
-        self.dt = self.clock.tick(60) / 1000
-        self.p1.update(self.dt)
-        self.p2.update(self.dt)
-        self.ball.update()
-
-        for e in self.entities: #update blocks etc.
-            self.display.blit(e.image, e.rect)
-        
-    
-    def check_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
 
     def match_loop(self):
         # main game loop
             self.check_events()
+            self.update_game_state()
             self.draw()
