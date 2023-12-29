@@ -33,13 +33,8 @@ class Match():
         self.goal1 = pygame.Rect(0, (self.display.get_height() - goal_height) // 2, goal_width, goal_height)
         self.goal2 = pygame.Rect(self.display.get_width() - goal_width, (self.display.get_height() - goal_height) // 2, goal_width, goal_height)
 
-         # Define borders
-        self.borders = [
-            pygame.Rect(0, 0, self.display.get_width(), 5),  # Top border
-            pygame.Rect(0, 0, 5, self.display.get_height()),  # Left border
-            pygame.Rect(0, self.display.get_height() - 5, self.display.get_width(), 5),  # Bottom border
-            pygame.Rect(self.display.get_width() - 5, 0, 5, self.display.get_height())  # Right border
-        ]
+        # Define borders
+        self.border = self.display.get_rect()
 
         self.font = pygame.font.Font(None, 36)
 
@@ -68,7 +63,7 @@ class Match1v1(Match):
         self.dt = self.clock.tick(60) / 1000
         self.p1.update(self.dt)
         self.p2.update(self.dt)
-        self.ball.update()
+        self.ball.update(self.border)
 
         for e in self.entities: #update blocks etc.
             self.display.blit(e.image, e.rect)
@@ -78,9 +73,9 @@ class Match1v1(Match):
         pygame.draw.rect(self.display, (255, 255, 255), self.goal1)  # White goal
         pygame.draw.rect(self.display, (255, 255, 255), self.goal2)  # White goal
 
-        # Draw borders
-        for border in self.borders:
-            pygame.draw.rect(self.display, (255, 255, 255), border)  # White border
+        # Draw the playfield border
+        border_thickness = 5
+        pygame.draw.rect(self.display, (255, 255, 255), self.border, border_thickness)
 
     
     def check_events(self):
@@ -116,12 +111,6 @@ class Match1v1(Match):
             self.score = (self.score[0] + 1, self.score[1])
             self.reset_ball()
 
-        # Check for ball collision with borders
-        for border in self.borders:
-            if border.colliderect(self.ball.rect):
-                # Handle ball bouncing off the border
-                # This might involve reversing the ball's direction or repositioning it
-                pass
         
         if pygame.sprite.collide_circle(self.p1,self.ball) or pygame.sprite.collide_circle(self.p2,self.ball) :
             # 1. Calculate the collision normal
