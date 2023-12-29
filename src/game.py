@@ -5,6 +5,7 @@ from database_query import DBQuery
 from player import Player, Bot
 from menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
 from match import Match1v1
+from ball import Ball
 
 class Game():
     def __init__(self, config):
@@ -47,11 +48,17 @@ class Game():
 
         self.player = Player(20,20,self.config)
         self.bot = Bot(100, 100,self.config)
-        self.curr_match = Match1v1(self, self.player, self.bot)
+        self.ball = Ball(400,400,self.config)
+        self.curr_match = Match1v1(self.display, self.player, self.bot, self.ball)
 
     def start_match(self):
-        if self.play_match is True:
+        #self.curr_match = self.match_creator.create_match()
+        
+        while self.play_match is True:
             self.curr_match.match_loop()
+            self.Draw()
+            self.Tick()
+            self.reset_keys()
     
 
     def game_loop(self):

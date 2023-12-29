@@ -8,8 +8,8 @@ from ball import Ball
 
 
 class Match():
-    def __init__(self,game):
-        self.game = game
+    def __init__(self,display):
+        self.display = display
         self.match_time = 5*60
         self.score = (0,0)
         self.tiebreak = False
@@ -30,20 +30,24 @@ class Match():
 
 class Match1v1(Match):
 
-    def __init__(self, game, p1, p2):
-        super().__init__(game)
+    def __init__(self, display, p1, p2, ball):
+        super().__init__(display)
         self.p1 = p1
         self.p2 = p2
-        self.ball = Ball(400,400,self.game.config)
+        self.ball = ball
         self.entities.add(self.ball, self.p1, self.p2)
         self.p1.set_up(self)
         self.p2.set_up(self)
 
     def draw(self):
-        self.game.display.fill((150,150,150))
+        self.display.fill((150,150,150))
         if pygame.sprite.collide_circle(self.p1,self.ball) or pygame.sprite.collide_circle(self.p2,self.ball) :
             # 1. Calculate the collision normal
-            collision_normal = self.ball.rect.center - Vector2(self.game.player.rect.center)
+            if pygame.sprite.collide_circle(self.p1, self.ball):
+                collision_normal = self.ball.rect.center - Vector2(self.p1.rect.center)
+            else:
+                collision_normal = self.ball.rect.center - Vector2(self.p2.rect.center)
+                
             collision_normal.normalize_ip()  # Normalize the vector to have a magnitude of 1
 
             # 2. Determine the new speed of the ball
@@ -56,10 +60,8 @@ class Match1v1(Match):
         self.ball.update()
 
         for e in self.entities: #update blocks etc.
-            self.game.display.blit(e.image, e.rect)
+            self.display.blit(e.image, e.rect)
         
-        self.game.screen.blit(self.game.display, (0,0))
-        pygame.display.update()
     
     def check_events(self):
         for event in pygame.event.get():
@@ -67,10 +69,6 @@ class Match1v1(Match):
                 pygame.quit()
 
     def match_loop(self):
-
-        while self.playing:
         # main game loop
             self.check_events()
-            self.game.Tick()
             self.draw()
-            self.game.reset_keys()
