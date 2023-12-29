@@ -134,7 +134,13 @@ def get_image(name: str) -> pygame.Surface:
             "ranks":"./../resources/ranked_trophies_lowres.jpg",
             "ranks_frames":"./../resources/icon_ranked_borders.jpg",
             "left_arrow": "./../resources/left-arrow.png",
-            "right_arrow": "./../resources/right_arrow.png"}
+            "right_arrow": "./../resources/right_arrow.png",
+            "WOODEN":"./../resources/icon_ranked_borders_smaller-1-1.png",
+            "IRON":"./../resources/icon_ranked_borders_smaller-2-1.png",
+            "BRONZE":"./../resources/icon_ranked_borders_smaller-3-1.png",
+            "SILVER":"./../resources/icon_ranked_borders_smaller-4-1.png",
+            "GOLD":"./../resources/icon_ranked_borders_smaller-5-1.png",
+            "CHALLENGER": "./../resources/icon_ranked_borders_smaller-6-1.png"}
     return_value = paths.get(name)
     if return_value is not None:
         return pygame.image.load(return_value).convert_alpha()
@@ -307,6 +313,11 @@ def check_string_color_posibility(color: str) -> None:
     Returns
     -------
     None
+    
+    Raises
+    ------
+    IvalidColorString
+        When the name is not in the possible names for a color in pygame.
 
     Notes
     -----

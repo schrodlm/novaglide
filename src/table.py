@@ -1,6 +1,6 @@
 """A Table module, provides simple table for the application.
 """
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 import pygame
 import utilities
 from configuration_mod import Config
@@ -10,7 +10,7 @@ class Table(pygame.sprite.Sprite):
     Inherits from pygame.sprite.Sprite.
     Parameters
     ----------
-    config : dict
+    config : Dict
         Configuration settings object of the client.
     header : str, optional
         The header of the table, by default an empty string.
@@ -71,7 +71,7 @@ class Table(pygame.sprite.Sprite):
     insert_data(data, display)
         Inserts data into the table and renders it on the display.
     """
-    def __init__(self, config: Config,header: str = "", row_size: int = 32,
+    def __init__(self, config: Dict,header: str = "", row_size: int = 32,
                 top_left_coords: Tuple[int,int]= (640,50),font_size: int = 16, 
                 header_font_size: int = 25, n_rows: int = 10, 
                 cols_sizes: List[int]= None):

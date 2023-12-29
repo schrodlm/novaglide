@@ -56,13 +56,25 @@ class Button(pygame.sprite.Sprite):
 
     Methods
     -------
-    update(screen: pygame.Surface) -> None:
+    update(screen: pygame.Surface) -> "Button":
         Updates the button on the given Pygame screen.
     check_for_input(position: Tuple[int, int]) -> bool:
         Checks whether the mouse is hovering over the button.
-    change_color(position: Tuple[int, int]) -> None:
+    change_color(position: Tuple[int, int]) -> "Button":
         Changes the color of the button based on mouse hovering.
-        
+    
+    Raises
+    ------
+    TypeError
+        If the provided types do not correspond to the hinted types
+    ValueError
+        If the length of the tuple is different from 2
+    OutOfBoundsError
+        If the pos exceeds the size of the screen or the colors are not in
+        0-255 range
+    InvalidColorString
+        If the name of the color is not recognized in pygame
+    
     Notes
     -----
     Inherits from pygame.sprite.Sprite.
@@ -72,7 +84,7 @@ class Button(pygame.sprite.Sprite):
                 text_input: str,
                 font: pygame.font.Font,
                 base_color: str|Tuple[int, int, int],
-                hovering_color: str|Tuple[int, int, int]):
+                hovering_color: str|Tuple[int, int, int]) -> None:
         #sprite init
         super().__init__()
         #test arguments
@@ -87,7 +99,7 @@ class Button(pygame.sprite.Sprite):
                 if not isinstance(coordinate, int):
                     raise TypeError("All coordinates need to be integers")
                 else:
-                    #raises CoordinatesOutOfBoundsError
+                    #raises OutOfBoundsError
                     utilities.check_inside_screen(x = pos[0], y = pos[1])
         if not isinstance(text_input, str):
             raise TypeError("Text_input needs to be passed as a string")
@@ -118,7 +130,7 @@ class Button(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
         self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
 
-    def update(self, screen: pygame.Surface) -> None:
+    def update(self, screen: pygame.Surface) -> "Button":
         """
         Updates the button on the given Pygame screen.
 
@@ -143,6 +155,7 @@ class Button(pygame.sprite.Sprite):
         if self.image is not None:
             screen.blit(self.image, self.rect)
         screen.blit(self.text, self.text_rect)
+        return self
 
     def check_for_input(self, position: Tuple[int,int]) -> bool:
         """
@@ -175,7 +188,7 @@ class Button(pygame.sprite.Sprite):
         else:
             for coordinate in position:
                 if not isinstance(coordinate, int):
-                    raise TypeError("All coordinates need to be integers")
+                    raise TypeError("All coordinates must be integers")
                 else:
                     #raises CoordinatesOutOfBoundsError
                     utilities.check_inside_screen(x = position[0],

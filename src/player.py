@@ -14,11 +14,14 @@ class Player(pygame.sprite.Sprite):
 
         self.rect = pygame.Rect(x - self.radius, y - self.radius,
                                 2 * self.radius, 2 * self.radius)
-
+        
         self.image = pygame.Surface((2 * self.radius, 2 * self.radius)
                                     , pygame.SRCALPHA)  # make it transparent
-        
-        self.image = self.image.convert_alpha()
+        size = self.image.get_size()
+        cropped_background = pygame.Surface(size, pygame.SRCALPHA)
+        pygame.draw.ellipse(cropped_background, (255, 255, 255, 255), (0, 0, *size))
+        cropped_background.blit(self.image, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        self.image = cropped_background.convert_alpha()
         
         pygame.draw.circle(self.image, color,
             (self.radius, self.radius), self.radius)
