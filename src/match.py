@@ -8,8 +8,8 @@ from ball import Ball
 
 
 class Match():
-    def __init__(self,game):
-        self.game = game
+    def __init__(self,display):
+        self.display = display
         self.match_time = 5*60
         self.score = (0,0)
         self.tiebreak = False
@@ -27,50 +27,138 @@ class Match():
         self.playing = True
 
 
+         # Define goals as rectangles
+        goal_width = 20  # Width of the goal, adjust as needed
+        goal_height = 100  # Height of the goal, adjust as needed
+        self.goal1 = pygame.Rect(0, (self.display.get_height() - goal_height) // 2, goal_width, goal_height)
+        self.goal2 = pygame.Rect(self.display.get_width() - goal_width, (self.display.get_height() - goal_height) // 2, goal_width, goal_height)
+
+        # Define borders
+        self.border = self.display.get_rect()
+
+        self.font = pygame.font.Font(None, 36)
+
+         # Initialize the match timer
+        self.match_duration = 10  # 5 minutes in seconds
+        self.start_time = pygame.time.get_ticks()  # Get the current time in milliseconds
+
+
 
 class Match1v1(Match):
 
-    def __init__(self, game, p1, p2):
-        super().__init__(game)
+    def __init__(self, display, p1, p2, ball):
+        super().__init__(display)
         self.p1 = p1
         self.p2 = p2
-        self.ball = Ball(400,400,self.game.config)
+        self.ball = ball
         self.entities.add(self.ball, self.p1, self.p2)
         self.p1.set_up(self)
         self.p2.set_up(self)
 
     def draw(self):
-        self.game.display.fill((150,150,150))
-        if pygame.sprite.collide_circle(self.p1,self.ball) or pygame.sprite.collide_circle(self.p2,self.ball) :
-            # 1. Calculate the collision normal
-            collision_normal = self.ball.rect.center - Vector2(self.game.player.rect.center)
-            collision_normal.normalize_ip()  # Normalize the vector to have a magnitude of 1
+        self.display.fill((150,150,150))
+        
+        # Render and draw the score
+        score_text = f"{self.score[0]} - {self.score[1]}"
+        score_surface = self.font.render(score_text, True, (255, 255, 255))  # White text
+        score_x = self.display.get_width() // 2 - score_surface.get_width() // 2
+        score_y = 10  # 10 pixels from the top
+        self.display.blit(score_surface, (score_x, score_y))
 
-            # 2. Determine the new speed of the ball
-            speed_magnitude = 20  # You can adjust this value as needed
-            self.ball.speed = collision_normal * speed_magnitude
-    
         self.dt = self.clock.tick(60) / 1000
         self.p1.update(self.dt)
         self.p2.update(self.dt)
-        self.ball.update()
+        self.ball.update(self.border)
 
         for e in self.entities: #update blocks etc.
-            self.game.display.blit(e.image, e.rect)
+            self.display.blit(e.image, e.rect)
         
-        self.game.screen.blit(self.game.display, (0,0))
-        pygame.display.update()
+
+            # Draw goals
+        pygame.draw.rect(self.display, (255, 255, 255), self.goal1)  # White goal
+        pygame.draw.rect(self.display, (255, 255, 255), self.goal2)  # White goal
+
+        # Draw the playfield border
+        border_thickness = 5
+        pygame.draw.rect(self.display, (255, 255, 255), self.border, border_thickness)
+
+         # Display the timer
+        elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000
+        remaining_time = max(self.match_duration - elapsed_time, 0)
+        timer_surface = self.font.render(f"Time Left: {int(remaining_time)}s", True, (255, 255, 255))
+        self.display.blit(timer_surface, (10, 10))  # Adjust position as needed
+
     
     def check_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
 
-    def match_loop(self):
+    def reset_ball(self):
+        center_x = self.display.get_width() // 2
+        center_y = self.display.get_height() // 2
+        self.ball.x = center_x
+        self.ball.y = center_y
 
-        while self.playing:
+        # Reset the ball's speed
+        # You can set this to an initial speed or to zero
+        self.ball.speed = Vector2(0, 0)
+
+        # Update the ball's rect to reflect the new position
+        self.ball.setRect()
+
+
+    def update_game_state(self):
+
+    # Check for ball collision with goals
+        if self.goal1.colliderect(self.ball.rect):
+            # Ball has entered goal 1
+            # Update score and reset ball position, etc.
+            self.score = (self.score[0], self.score[1] + 1)
+            self.reset_ball()
+
+        if self.goal2.colliderect(self.ball.rect):
+            # Ball has entered goal 2, increment score for player 1
+            self.score = (self.score[0] + 1, self.score[1])
+            self.reset_ball()
+
+        
+        if pygame.sprite.collide_circle(self.p1,self.ball) or pygame.sprite.collide_circle(self.p2,self.ball) :
+            # 1. Calculate the collision normal
+            if pygame.sprite.collide_circle(self.p1, self.ball):
+                collision_normal = self.ball.rect.center - Vector2(self.p1.rect.center)
+            else:
+                collision_normal = self.ball.rect.center - Vector2(self.p2.rect.center)
+                
+            collision_normal.normalize_ip()  # Normalize the vector to have a magnitude of 1
+
+            # 2. Determine the new speed of the ball
+            speed_magnitude = 20  # You can adjust this value as needed
+            self.ball.speed = collision_normal * speed_magnitude
+    
+
+    def end_match(self):
+        # Determine the winner based on the score
+        if self.score[0] > self.score[1]:
+            winner = "Player 1 wins!"
+        elif self.score[0] < self.score[1]:
+            winner = "Player 2 wins!"
+        else:
+            winner = "It's a tie!"
+
+        # Display the result (you can also create a separate method for this)
+        print(winner)  # Or use a more sophisticated method to display the result on the screen
+
+        # Stop the game loop
+        self.playing = False
+
+    def match_loop(self):
         # main game loop
             self.check_events()
-            self.game.Tick()
+            self.update_game_state()
             self.draw()
-            self.game.reset_keys()
+
+             # Update the timer
+            elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000  # Convert milliseconds to seconds
+            if elapsed_time >= self.match_duration:
+                self.end_match()

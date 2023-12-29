@@ -29,14 +29,14 @@ class Ball(pygame.sprite.Sprite):
 
         self.speed = Vector2(0, 0)
 
-    def update(self):
+    def update(self, borders):
         #updating position based on speed
         self.x += self.speed.x
         self.y += self.speed.y
         #slowing down the ball
         self.speed.x /= 1.003
         self.speed.y /= 1.003
-        self.checkAndHandleRebound()
+        self.checkAndHandleRebound(borders)
         self.setRect()
 
     
@@ -45,11 +45,23 @@ class Ball(pygame.sprite.Sprite):
                                 2 * self.radius, 2 * self.radius)
 
 
-    def checkAndHandleRebound(self):
-        if self.x <= 0 or self.x >= self.config["resolution"]["width"]:
+    def checkAndHandleRebound(self, playfield_border):
+ # Check collision with the left or right border
+        if self.x - self.radius <= playfield_border.left:
             self.speed.x = -self.speed.x
-        if self.y <= 0 or self.y >= self.config["resolution"]["height"]:
+            self.x = playfield_border.left + self.radius  # Adjust position to the border edge
+        elif self.x + self.radius >= playfield_border.right:
+            self.speed.x = -self.speed.x
+            self.x = playfield_border.right - self.radius  # Adjust position to the border edge
+
+        # Check collision with the top or bottom border
+        if self.y - self.radius <= playfield_border.top:
             self.speed.y = -self.speed.y
+            self.y = playfield_border.top + self.radius  # Adjust position to the border edge
+        elif self.y + self.radius >= playfield_border.bottom:
+            self.speed.y = -self.speed.y
+            self.y = playfield_border.bottom - self.radius  # Adjust position to the border edge
+
 
 if __name__ == "__main__":
     raise RuntimeError("This module is designed for import only.")
