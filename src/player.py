@@ -14,10 +14,21 @@ class Player(pygame.sprite.Sprite):
         self.coord_initial = Vector2(x, y)
         self.hook_coords = Vector2(x, y)
         self.hook_initial = Vector2(x, y)
-        self.coords_current = Vector2(x,y)
+        self.coords_current = Vector2(x, y)
+        self.dash_started = Vector2(x, y)
+        self.dash_coords = Vector2(x, y)
+        self.dash_destination = Vector2(x, y)
+        self.hook_cooldown_started = 0
+        self.hook_on_cooldown = False
+        self.dash_cooldown_started = 0
+        self.dash_on_cooldown = False
+
+        self.dashed_already = 0
+        self.dash_length = 8
         self.hooking = False
         self.end_hook = False
         self.pull = False
+        self.dashing = False
         self.rect = pygame.Rect(x - self.radius, y - self.radius,
                                 2 * self.radius, 2 * self.radius)
         
@@ -29,7 +40,7 @@ class Player(pygame.sprite.Sprite):
             (self.radius, self.radius), self.radius)
 
 
-    def update(self, dt, display, mouse_pos):
+    def update(self, dt, display, mouse_pos, time):
         keys = pygame.key.get_pressed()
         #TODO: fix diagonal movement, has to be divided by sqrt2
         if keys[pygame.K_w] and not self.pull:
@@ -40,10 +51,14 @@ class Player(pygame.sprite.Sprite):
             self.move(-500*dt, 0)
         if keys[pygame.K_d] and not self.pull:
             self.move(500*dt, 0)
-        if keys[pygame.K_SPACE] and self.hooking is False and not self.pull:
+        if (keys[pygame.K_SPACE] and self.hooking is False 
+            and not self.pull and not self.hook_on_cooldown):
             #runs in the first tick after presing backspace
+            self.hook_cooldown_started = time
+            self.hook_on_cooldown = True
             self.hooking = True
-            self.hook_coords.xy = self.x, self.y
+            self.hook_coords.x = self.x
+            self.hook_coords.y = self.y
             self.hook_initial.x = mouse_pos[0]
             self.hook_initial.y = mouse_pos[1]
             hook_wall = self.intersect_vector_rectangle(self.hook_coords,
@@ -60,6 +75,12 @@ class Player(pygame.sprite.Sprite):
             self.hook(dt, display)
         if self.pull:
             self.pull_player(dt)
+        if keys[pygame.K_LSHIFT] and not self.dash_on_cooldown:
+            self.dash_cooldown_started = time
+            self.dash_destination.x = mouse_pos[0]
+            self.dash_destination.y = mouse_pos[1]
+            self.dash(dt)
+        self.check_cooldowns(time)
 
     #TODO: border width to config
     def move(self, dx, dy):
@@ -142,6 +163,36 @@ class Player(pygame.sprite.Sprite):
             self.hook_coords.y > self.config["resolution"]["height"]):
             return False
         return True
+    
+    def dash(self, dt):
+        if self.dashed_already == 0:
+            self.dash_started.x = self.x
+            self.dash_started.y = self.y
+            self.coords_current.x = self.x
+            self.coords_current.y = self.y
+        if self.dashed_already < self.dash_length:
+            direction = self.dash_destination - self.dash_started
+            self.coords_current += 1600*dt*(direction.normalize())
+            self.hooking = False
+            self.end_hook = False
+            self.pull = False
+            self.dashing = True
+            self.x = self.coords_current.x
+            self.y = self.coords_current.y
+            #make a seperate method
+            if not self.invariant():
+                self.dashing = False
+            self.setRect()
+            self.dashed_already += 1
+        if self.dashed_already == self.dash_length:
+            self.dashed_already = 0
+            self.dash_on_cooldown = True
+            
+    def check_cooldowns(self, time):
+        if time - self.dash_cooldown_started > 10:
+            self.dash_on_cooldown = False
+        if time - self.hook_cooldown_started > 20:
+            self.hook_on_cooldown = False
     def set_up(self, match):
         pass
 # -------------------------- BOT -----------------------------------
