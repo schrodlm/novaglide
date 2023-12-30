@@ -71,17 +71,12 @@ class Match1v1(Match):
         self.display.blit(score_surface, (score_x, score_y))
 
         self.dt = self.clock.tick(60) / 1000
-        self.p1.update(self.dt, self.display, pygame.mouse.get_pos())
-        self.p2.update(self.dt)
-        self.ball.update(self.border)
-            
-        for e in self.entities: #update blocks etc.
-            self.display.blit(e.image, e.rect)
+
         
 
             # Draw goals
-        pygame.draw.rect(self.display, (255, 255, 255), self.goal1)  # White goal
-        pygame.draw.rect(self.display, (255, 255, 255), self.goal2)  # White goal
+        pygame.draw.rect(self.display, "red", self.goal1)  # White goal
+        pygame.draw.rect(self.display, "red", self.goal2)  # White goal
 
         # Draw the playfield border
         border_thickness = 5
@@ -93,9 +88,26 @@ class Match1v1(Match):
         timer_surface = self.font.render(f"Time Left: {int(remaining_time)}s", True, (255, 255, 255))
         self.display.blit(timer_surface, (10, 10))  # Adjust position as needed
 
-
-
-    
+        self.p1.update(self.dt, self.display, pygame.mouse.get_pos(), elapsed_time)
+        self.p2.update(self.dt)
+        self.ball.update(self.border)
+        
+        dash_time = 10 - abs(elapsed_time - self.p1.dash_cooldown_started)
+        hook_time = 20 - abs(elapsed_time - self.p1.hook_cooldown_started)
+        dash_time = max(0,dash_time)
+        dash_time = min(dash_time, 10)
+        hook_time = max(0,hook_time)
+        hook_time = min(hook_time, 20)
+        if self.p1.dash_cooldown_started == 0:
+            dash_time = 0
+        if self.p1.hook_cooldown_started == 0:
+            hook_time = 0
+        cooldown_surace_dash = self.font.render(f"Dash: {int(dash_time)}s", True, (255, 255, 255))
+        cooldown_surace_hook = self.font.render(f"Hook: {int(hook_time)}s", True, (255, 255, 255))
+        self.display.blit(cooldown_surace_dash, (550, 650))
+        self.display.blit(cooldown_surace_hook, (700, 650))
+        for e in self.entities: #update blocks etc.
+            self.display.blit(e.image, e.rect)
     def check_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
