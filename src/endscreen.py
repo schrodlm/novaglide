@@ -32,7 +32,7 @@ class EndScreenMenu(Menu):
 
         while self.run_display:
             #tick and fill new background
-            self.game.Check_inputs()
+            self.game.check_inputs()
             self.game.display.fill((0,0,0))
             self.game.display.blit(utilities.get_image("background_main"), (0, 0))                
 

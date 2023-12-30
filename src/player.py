@@ -1,6 +1,6 @@
 import pygame
-
-
+import numpy as np 
+from pygame import Vector2
 # --------------------------PLAYER-----------------------------------
 
 class Player(pygame.sprite.Sprite):
@@ -11,45 +11,68 @@ class Player(pygame.sprite.Sprite):
         # width and height
         self.radius = radius
         self.x, self.y = x, y
-
+        self.coord_initial = Vector2(x, y)
+        self.hook_coords = Vector2(x, y)
+        self.hook_initial = Vector2(x, y)
+        self.coords_current = Vector2(x,y)
+        self.hooking = False
+        self.end_hook = False
+        self.pull = False
         self.rect = pygame.Rect(x - self.radius, y - self.radius,
                                 2 * self.radius, 2 * self.radius)
         
         self.image = pygame.Surface((2 * self.radius, 2 * self.radius)
                                     , pygame.SRCALPHA)  # make it transparent
-        size = self.image.get_size()
-        cropped_background = pygame.Surface(size, pygame.SRCALPHA)
-        pygame.draw.ellipse(cropped_background, (255, 255, 255, 255), (0, 0, *size))
-        cropped_background.blit(self.image, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
-        self.image = cropped_background.convert_alpha()
+        self.image = self.image.convert_alpha()
         
         pygame.draw.circle(self.image, color,
             (self.radius, self.radius), self.radius)
 
 
-    def update(self, dt):
+    def update(self, dt, display, mouse_pos):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
-            self.move(0, -300*dt)
-        if keys[pygame.K_s]:
-            self.move(0, 300*dt)
-        if keys[pygame.K_a]:
-            self.move(-300*dt, 0)
-        if keys[pygame.K_d]:
-            self.move(300*dt, 0)
+        #TODO: fix diagonal movement, has to be divided by sqrt2
+        if keys[pygame.K_w] and not self.pull:
+            self.move(0, -500*dt)
+        if keys[pygame.K_s] and not self.pull:
+            self.move(0, 500*dt)
+        if keys[pygame.K_a] and not self.pull:
+            self.move(-500*dt, 0)
+        if keys[pygame.K_d] and not self.pull:
+            self.move(500*dt, 0)
+        if keys[pygame.K_SPACE] and self.hooking is False and not self.pull:
+            #runs in the first tick after presing backspace
+            self.hooking = True
+            self.hook_coords.xy = self.x, self.y
+            self.hook_initial.x = mouse_pos[0]
+            self.hook_initial.y = mouse_pos[1]
+            hook_wall = self.intersect_vector_rectangle(self.hook_coords,
+                                            self.hook_initial)
+            self.hook_initial.x = hook_wall.x
+            self.hook_initial.y = hook_wall.y
+            self.hook(dt, display)
+        if self.end_hook:
+            #runs after it reaches boarder
+            self.end_hook = False
+            self.hooking = False
+        if self.hooking:
+            #runs after casting until reaching border
+            self.hook(dt, display)
+        if self.pull:
+            self.pull_player(dt)
 
-    #TODO: vyresit poradne boundaries
+    #TODO: border width to config
     def move(self, dx, dy):
         self.x += dx
         self.y += dy
-        if self.x < 0:
-            self.x = self.config["resolution"]["width"]
-        elif self.x > self.config["resolution"]["width"]:
-            self. x = 0
-        if self.y < 0:
-            self.y = self.config["resolution"]["height"]
-        elif self.y > self.config["resolution"]["height"]:
-            self.y = 0
+        if self.x - self.radius < 0:
+            self.x = 5 + self.radius
+        elif self.x + self.radius > self.config["resolution"]["width"]:
+            self.x = self.config["resolution"]["width"] - self.radius -5
+        if self.y - self.radius < 0:
+            self.y = 5 + self.radius
+        elif self.y + self.radius > self.config["resolution"]["height"]:
+            self.y = self.config["resolution"]["height"] - self.radius -5
         self.setRect()
 
     #TODO: poradne vyresit jak se bude nastavovat pozice
@@ -57,6 +80,68 @@ class Player(pygame.sprite.Sprite):
         self.rect = pygame.Rect(self.x - self.radius, self.y - self.radius,
                                 2 * self.radius, 2 * self.radius)
 
+    def hook(self, dt, display):
+        direction = self.hook_initial - self.hook_coords
+        self.hook_coords += 1200*dt*(direction.normalize())
+        if not self.hook_invarint():
+            #begin pulling after geting out of boundary
+            self.end_hook = True
+            self.pull = True
+            self.coords_current.x = self.x
+            self.coords_current.y = self.y
+        else:
+            pygame.draw.line(display, "orange4", (self.x, self.y),
+                        (self.hook_coords.x, self.hook_coords.y),3)
+    def pull_player(self,dt):
+        direction = self.hook_initial - self.coords_current
+        self.coords_current += 1200*dt*(direction.normalize())
+        self.x = self.coords_current.x
+        self.y = self.coords_current.y
+        #make a seperate method
+        if not self.invariant():
+            self.pull = False
+        self.setRect()
+        
+    def intersect_vector_rectangle(self, point_a: Vector2, point_b: Vector2):
+        #this method finds the point where vector between two points
+        #intersects with the border
+        t_1 = (-point_a.x)/(point_b.x - point_a.x)
+        t_2 = (1280 - point_a.x)/(point_b.x - point_a.x)
+        t_3 = (-point_a.y)/(point_b.y - point_a.y)
+        t_4 = (720 - point_a.y)/(point_b.y - point_a.y)
+        positive_solution = []
+        for t in (t_1,t_2,t_3,t_4):
+            if t>0:
+                positive_solution.append(t)
+        final_t = min(positive_solution)
+        return Vector2(point_a.x + final_t*(point_b.x - point_a.x),
+                       point_a.y + final_t*(point_b.y - point_a.y))
+        
+    def invariant(self):
+        #ensures that the player stays inside the game
+        if self.x - self.radius < 0:
+            self.x = self.config["match"]["border_width"] + self.radius
+            return False
+        if self.x + self.radius > self.config["resolution"]["width"]:
+            self.x = (self.config["resolution"]["width"]
+                      - self.radius - self.config["match"]["border_width"])
+            return False
+        if self.y - self.radius < 0:
+            self.y = self.config["match"]["border_width"] + self.radius
+            return False
+        if self.y + self.radius > self.config["resolution"]["height"]:
+            self.y = (self.config["resolution"]["height"] -
+                      self.radius - self.config["match"]["border_width"])
+            return False
+        return True
+    def hook_invarint(self):
+        #determines whether hook is out of bounds
+        if (self.hook_coords.x < 0 or
+            self.hook_coords.x > self.config["resolution"]["width"]
+            or self.hook_coords.y < 0 or
+            self.hook_coords.y > self.config["resolution"]["height"]):
+            return False
+        return True
     def set_up(self, match):
         pass
 # -------------------------- BOT -----------------------------------
