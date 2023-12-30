@@ -41,5 +41,6 @@ match:
     ball_pos:
       x: 400
       y: 400
+  border_width: 5
 
   match_4: 

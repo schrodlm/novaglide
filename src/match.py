@@ -3,7 +3,7 @@
 import pygame
 from pygame import Vector2
 from ball import Ball
-
+pygame.init()
 
 
 
@@ -39,7 +39,7 @@ class Match():
         self.font = pygame.font.Font(None, 36)
 
          # Initialize the match timer
-        self.match_duration = 10  # 5 minutes in seconds
+        self.match_duration = 30  # 5 minutes in seconds
         self.start_time = pygame.time.get_ticks()  # Get the current time in milliseconds
 
 
@@ -66,10 +66,10 @@ class Match1v1(Match):
         self.display.blit(score_surface, (score_x, score_y))
 
         self.dt = self.clock.tick(60) / 1000
-        self.p1.update(self.dt)
+        self.p1.update(self.dt, self.display, pygame.mouse.get_pos())
         self.p2.update(self.dt)
         self.ball.update(self.border)
-
+            
         for e in self.entities: #update blocks etc.
             self.display.blit(e.image, e.rect)
         

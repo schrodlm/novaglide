@@ -60,7 +60,7 @@ class Game():
 
     def start_match(self):
         
-        player = Player(20,20,self.config)
+        player = Player(100,100,self.config)
         bot = Bot(100, 100,self.config)
         ball = Ball(400,400,self.config)
     
