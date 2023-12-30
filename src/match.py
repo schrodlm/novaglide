@@ -3,9 +3,9 @@
 import pygame
 from pygame import Vector2
 from ball import Ball
+from match_stats import MatchStats
+
 pygame.init()
-
-
 
 class Match():
     def __init__(self,display):
@@ -39,8 +39,9 @@ class Match():
         self.font = pygame.font.Font(None, 36)
 
          # Initialize the match timer
-        self.match_duration = 30  # 5 minutes in seconds
+        self.match_duration = 5  # 5 minutes in seconds
         self.start_time = pygame.time.get_ticks()  # Get the current time in milliseconds
+
 
 
 
@@ -54,6 +55,10 @@ class Match1v1(Match):
         self.entities.add(self.ball, self.p1, self.p2)
         self.p1.set_up(self)
         self.p2.set_up(self)
+
+
+        #Stat class initialized
+        self.match_stats = MatchStats(entities=self.entities)
 
     def draw(self):
         self.display.fill((150,150,150))
@@ -88,6 +93,8 @@ class Match1v1(Match):
         timer_surface = self.font.render(f"Time Left: {int(remaining_time)}s", True, (255, 255, 255))
         self.display.blit(timer_surface, (10, 10))  # Adjust position as needed
 
+
+
     
     def check_events(self):
         for event in pygame.event.get():
@@ -115,11 +122,13 @@ class Match1v1(Match):
             # Ball has entered goal 1
             # Update score and reset ball position, etc.
             self.score = (self.score[0], self.score[1] + 1)
+            self.match_stats.add_goal(self.p1)
             self.reset_ball()
 
         if self.goal2.colliderect(self.ball.rect):
             # Ball has entered goal 2, increment score for player 1
             self.score = (self.score[0] + 1, self.score[1])
+            self.match_stats.add_goal(self.p2)
             self.reset_ball()
 
         
@@ -127,8 +136,10 @@ class Match1v1(Match):
             # 1. Calculate the collision normal
             if pygame.sprite.collide_circle(self.p1, self.ball):
                 collision_normal = self.ball.rect.center - Vector2(self.p1.rect.center)
+                self.match_stats.add_touch(self.p1)
             else:
                 collision_normal = self.ball.rect.center - Vector2(self.p2.rect.center)
+                self.match_stats.add_touch(self.p2)
                 
             collision_normal.normalize_ip()  # Normalize the vector to have a magnitude of 1
 
@@ -140,17 +151,16 @@ class Match1v1(Match):
     def end_match(self):
         # Determine the winner based on the score
         if self.score[0] > self.score[1]:
-            winner = "Player 1 wins!"
+            self.match_stats.set_winner(self.p2)
         elif self.score[0] < self.score[1]:
-            winner = "Player 2 wins!"
-        else:
-            winner = "It's a tie!"
-
-        # Display the result (you can also create a separate method for this)
-        print(winner)  # Or use a more sophisticated method to display the result on the screen
+            self.match_stats.set_winner(self.p1)
 
         # Stop the game loop
         self.playing = False
+
+    def get_match_stats(self):
+        return self.match_stats
+
 
     def match_loop(self):
         # main game loop

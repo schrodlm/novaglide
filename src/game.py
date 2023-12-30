@@ -52,7 +52,6 @@ class Game():
         self.login_menu = LogInMenu(self)
         self.ranked_menu = RankedMenu(self)
         self.match_history_menu = MatchHistoryMenu(self)
-        self.endscreen_menu = EndScreenMenu(self, "test2")
 
         self.curr_menu = self.login_menu
 
@@ -60,7 +59,7 @@ class Game():
 
     def start_match(self):
         
-        player = Player(100,100,self.config)
+        player = Player(self.user_credentials["name"], 100,100,self.config)
         bot = Bot(100, 100,self.config)
         ball = Ball(400,400,self.config)
     
@@ -73,8 +72,10 @@ class Game():
             self.Tick()
             self.reset_keys()
 
+        match_stats = curr_match.get_match_stats()
         self.play_match = False
-        self.curr_menu = EndScreenMenu(self, "test")
+        self.curr_menu = EndScreenMenu(self, match_stats)
+        print(match_stats.stats.get(player))
         
         
     
