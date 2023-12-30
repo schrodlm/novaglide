@@ -320,7 +320,7 @@ class SettingsMenu(Menu):
 
         self.controls = self.loaded_settings["Controls"]
         #using player to plot skin preview
-        self.player = Player(200,self.mid_y + 100, self.game.config, 100)
+        self.player = Player("",200,self.mid_y + 100, self.game.config, 100)
         #group of all buttons
         self.buttons = pygame.sprite.Group()
 
@@ -484,7 +484,7 @@ class RankedMenu(Menu):
                             text_input="", font=utilities.get_font(40),
                             base_color=(133, 88, 255), hovering_color=self.game.config["colours"]["aqua"])
         self.elo, self.division = self.get_my_elo()
-        self.player_preview = Player(170,250, self.game.config,70)
+        self.player_preview = Player("",170,250, self.game.config,70)
         self.winrate = self.get_winrate()
         self.challenger_table = Table(self.game.config,header="CHALLENGERS",cols_sizes=[50,350,100,120])
         #challenger table buttons

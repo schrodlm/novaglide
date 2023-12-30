@@ -5,7 +5,7 @@ from pygame import Vector2
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, x, y, config,radius = 40, color = "red"):
+    def __init__(self, name, x, y, config,radius = 40, color = "red"):
         pygame.sprite.Sprite.__init__(self)
         self.config = config
         # width and height
@@ -39,6 +39,7 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.circle(self.image, color,
             (self.radius, self.radius), self.radius)
 
+        self.name = name
 
     def update(self, dt, display, mouse_pos, time):
         keys = pygame.key.get_pressed()
@@ -218,6 +219,7 @@ class Bot(pygame.sprite.Sprite):
             (self.radius, self.radius), self.radius)
         
         self.ball = None
+        self.name = "BOT"
     
     def set_up(self, match):
         self.ball = match.ball

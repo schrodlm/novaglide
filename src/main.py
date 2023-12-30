@@ -11,10 +11,8 @@ def main():
 
     while g.running:
         g.curr_menu.display_menu()
-        print("HERE")
         if g.play_match is True:
             g.start_match()
-        g.game_loop()
 
 if __name__ == "__main__":
     main()
