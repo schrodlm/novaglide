@@ -1,4 +1,4 @@
-from ball import Ball
+from game_objects.ball import Ball
 
 class MatchStats:
     def __init__(self, entities):

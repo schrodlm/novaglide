@@ -7,20 +7,34 @@ RuntimeError
 """
 
 import sys
+import datetime
+import json
 import pygame
 import pygame.locals
-from database_query import DBQuery
-from player import Player, Bot
-from menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
-from match import Match1v1
-from ball import Ball
-from endscreen import EndScreenMenu
+from networking.network import Network
+from database.database_query import DBQuery
+from game_objects.player import Player, Bot
+from menu.menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
+from match.match import Match1v1
+from game_objects.ball import Ball
+from menu.endscreen import EndScreenMenu
 
 class Game():
     def __init__(self, config):
         pygame.init()
-        pygame.display.set_caption('Novaglide')
+        pygame.display.set_caption("Novaglide")
+        #config file
         self.config = config
+        self.net = Network()
+        #client receives his id on startup
+        self.client_id = "uknown"
+        #flag indicating whether client is connected to
+        #the server(whether connection is active)
+        self.online = False
+        #offline/waiting_for_approval/online(in menu)/queued/ingame
+        self.status = "offline"
+        
+        
         self.running, self.playing = True,False
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
         self.WIDTH, self.HEIGHT = self.config["resolution"]["width"], self.config["resolution"]["height"]
@@ -117,9 +131,23 @@ class Game():
         self.mpos = pygame.mouse.get_pos()
         self.keys_pressed = pygame.key.get_pressed()
 
-    def Draw(self):   
+    def Draw(self):
         self.screen.blit(self.display, (0,0))
         pygame.display.update()
 
+    def parse_data(self, flag, data):
+        data = {"time":datetime.datetime.now(),
+                "sender":self.client_id, 
+                "flag":flag,
+                "data":data}
+        return data
+    def unpack_login_data(self, data):
+        return (data["data"][0], data["data"][1], data["data"][2])
+    def unpack_elo_data(self, data):
+        return (data["data"][0], data["data"][1])
+    def unpack_winrate_data(self, data):
+        return data["data"][0]
+    def unpack_challenger_data(self, data):
+        return data["data"]
 if __name__ == "__main__":
     raise RuntimeError("This module is designed for import only.")

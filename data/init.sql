@@ -2,8 +2,8 @@ CREATE TABLE user_data (
     id SERIAL,
     Name VARCHAR(30),
     Password VARCHAR(30),
-    Elo_1v1 SMALLINT,
-    Elo_2v2 SMALLINT,
+    Elo SMALLINT,
+    Winrate SMALLINT,
     Skin VARCHAR(15)
 );
 
@@ -38,7 +38,7 @@ CREATE TABLE games_2v2 (
 
 /* TO BE DELETED, JUST FOR TESTING*/
 
-INSERT INTO user_data (Name, Password, Elo_1v1, Elo_2v2, Skin) VALUES
+INSERT INTO user_data (Name, Password, Elo, Winrate, Skin) VALUES
 ('JohnDoe', 'password123', 1500, 1600, 'Skin1'),
 ('AliceSmith', 'securepwd456', 1400, 1550, 'Skin2'),
 ('BobJohnson', 'strongpass789', 1550, 1650, 'Skin3'),

@@ -15,18 +15,72 @@ class DBQuery:
         #Opening cursor to the database
         self.cursor = self.connection.cursor()
         #Basic commands mapping to increase readability
-        self.sql_statements = {"user_data":"SELECT * FROM  user_data"}
+        query = """
+(
+  SELECT Elo
+  FROM user_data
+  ORDER BY Elo DESC
+  LIMIT 1 OFFSET 99
+)
+UNION
+(
+  SELECT Elo
+  FROM user_data
+  ORDER BY Elo ASC
+  LIMIT 1
+);
+"""
+        self.sql_statements = {"user_data":"SELECT * FROM  user_data",
+                               "top_elo":query,
+                               "get_challengers":"SELECT Name, Winrate, Elo FROM user_data ORDER BY Elo DESC LIMIT 100"}
         self.data = None
+        
+    def get_user_id(self, name):
+        query = "SELECT id FROM user_data WHERE Name =%s"
+        try:
+            self.cursor.execute(query,
+                                (name,))
+        except psycopg2.InterfaceError:
+            self.create_new_connection()
+            self.cursor.execute(query,
+                                (name,))
+        return self.cursor.fetchone()
+        
+    def get_user_elo(self, name):
+        query = "SELECT Elo FROM user_data WHERE Name =%s"
+        try:
+            self.cursor.execute(query,
+                                (name,))
+        except psycopg2.InterfaceError:
+            self.create_new_connection()
+            self.cursor.execute(query,
+                                (name,))
+        return self.cursor.fetchone()
+    def get_user_winrate(self, name):
+        query = "SELECT Winrate FROM user_data WHERE Name =%s"
+        try:
+            self.cursor.execute(query,
+                                (name,))
+        except psycopg2.InterfaceError:
+            self.create_new_connection()
+            self.cursor.execute(query,
+                                (name,))
+        return self.cursor.fetchone()
+
     def query_data(self, query = "user_data"):
         """_summary_
 
         Args:
             query (str, optional): _description_. Defaults to "users".
         """
-        self.cursor.execute(self.sql_statements.get(query))
+        try:
+            self.cursor.execute(self.sql_statements.get(query))
+        except psycopg2.InterfaceError:
+            self.create_new_connection()
+            self.cursor.execute(self.sql_statements.get(query))
         self.data = self.cursor.fetchall()
         self.close_connection_to_db()
-
+        return self.data
     def close_connection_to_db(self):
         """_summary_
         """
@@ -43,6 +97,7 @@ class DBQuery:
         self.cursor = self.connection.cursor()
     
     def allow_user_credentials(self, username, password):
+        #TODO: If time allows, hash passwords in the database and compare hashes
         #Force the user to always fill both of the fields
         if username == "" or password == "":
             return "Make sure to fill both name and password"
@@ -63,7 +118,7 @@ class DBQuery:
             self.close_connection_to_db()
             return "Incorrect password for this username"
         #Creating new user in the database and inserting him into the database
-        self.cursor.execute("INSERT INTO user_data (Name, Password, Elo_1v1, Elo_2v2, Skin) VALUES(%s, %s, %s, %s, %s)",
+        self.cursor.execute("INSERT INTO user_data (Name, Password, Elo, Winrate, Skin) VALUES(%s, %s, %s, %s, %s)",
                     (username, password,1000,1000,"Skin1"))
         self.connection.commit()
         self.close_connection_to_db()

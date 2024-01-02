@@ -2,8 +2,8 @@
 """
 import pygame
 from pygame import Vector2
-from ball import Ball
-from match_stats import MatchStats
+from game_objects.ball import Ball
+from match.match_stats import MatchStats
 
 pygame.init()
 

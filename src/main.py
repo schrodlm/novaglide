@@ -3,16 +3,20 @@
 from game import Game
 from configuration_mod import Config
 
-def main():
-    """client side loop
-    """
-    config = Config()
-    g = Game(config = config.config)
+class Client:
+    def __init__(self) -> None:
+        self.config = Config()
+        self.g = Game(config = self.config.config)
 
-    while g.running:
-        g.curr_menu.display_menu()
-        if g.play_match is True:
-            g.start_match()
+    def main_lopp(self):
+        """client side loop
+        """
+        while self.g.running:
+            self.g.curr_menu.display_menu()
+            #TODO: to be moved to the server side
+            if self.g.play_match is True:
+                self.g.start_match()
 
 if __name__ == "__main__":
-    main()
+    client = Client()
+    client.main_lopp()

@@ -2,11 +2,12 @@ import sys
 import json
 import pygame
 import utilities
+import datetime
 from abc import ABC, abstractmethod
-from input_box import InputBox
-from button import Button
-from table import Table
-from player import Player
+from menu_elements.input_box import InputBox
+from menu_elements.button import Button
+from menu_elements.table import Table
+from game_objects.player import Player
 
 class Menu(ABC):
     """
@@ -52,7 +53,13 @@ class Menu(ABC):
         pygame.display.update()
         self.game.reset_keys()
         return self
-
+    def share_status(self):
+        if self.game.online:
+            self.game.net.send({"time":datetime.datetime.now(),
+"sender":"unknown", 
+"flag":self.game.client_id,
+"data":[self.game.status]})
+        return self
     #ensuring that all menus implement these methods,
     #to make the API consistent
     @abstractmethod
@@ -90,8 +97,6 @@ class LogInMenu(Menu):
         Flag indicating if login error is present.
     allow : str
         Permission level after login attempt.
-    ignore_check_event : bool
-        Flag to ignore check_event during login.
 
     Methods
     -------
@@ -120,7 +125,7 @@ class LogInMenu(Menu):
         self.input_boxes = [self.username_input, self.password_input]
         self.error_present = False
         self.allow = None
-        self.ignore_check_event = False
+   
 
     def display_menu(self) -> "LogInMenu":
         """
@@ -132,6 +137,7 @@ class LogInMenu(Menu):
         #TODO: logout from the server
         self.run_display = True
         while self.run_display:
+            self.share_status()
             self.game.check_inputs()
             self.game.display.fill((0,0,0))
             # draw background
@@ -144,11 +150,12 @@ class LogInMenu(Menu):
                                 150,
                                 self.game.display,
                                 self.game.config["colours"]["black"])
-            if self.allow is not None and self.error_present:
+            if self.error_present:
                 self.draw_error(self.allow)
             self.log_in_button.change_color(self.game.mpos).update(self.game.
                                                             display)
             self.check_events().blit_screen()
+            
         return self
 
     def check_events(self) -> "LogInMenu":
@@ -162,18 +169,26 @@ class LogInMenu(Menu):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.log_in_button.check_for_input(self.game.mpos):
-                    allowed = self.game.query.allow_user_credentials(self.
-                                    username_input.text,
-                                    self.password_input.text)
-                    if allowed is not None:
-                        self.allow = allowed
+                    if not self.game.online:
+                        self.game.net.connect()
+                        self.game.online = True
+                        self.game.status = "waiting_for_approval"
+                    if self.game.online:
+                        self.game.status, self.allow, self.game.client_id = self.game.unpack_login_data(self.game.net.send(self.
+                            game.parse_data(
+                            "log_in_data",
+                            [self.username_input.text, self.password_input.text])))
+                        print(self.allow, self.game.client_id)
                     if self.allow in ("known user", "registering new user"):
                         self.error_present = False
                         self.allow = None
                         self.run_display = False
+                        self.game.status = "online"
                         self.game.curr_menu = self.game.main_menu
-                        self.game.user_credentials["name"] = self.username_input.text
-                        self.game.user_credentials["password"] = self.password_input.text
+                        self.game.user_credentials["name"] = (self.
+                                                    username_input.text)
+                        self.game.user_credentials["password"] = (self.
+                                                    password_input.text)
                         break
                     else:
                         self.error_present = True
@@ -242,6 +257,7 @@ class MainMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
+            self.share_status()
             #tick and fill new background
             self.game.check_inputs()
             self.game.display.fill((0,0,0))
@@ -272,8 +288,6 @@ class MainMenu(Menu):
                 if self.play_1v1_button.check_for_input(self.game.mpos):
                     self.run_display = False
                     self.game.play_match = True
-                    print("1v1 selected")
-
 
                 if self.play_2v2_button.check_for_input(self.game.mpos):
                     #TODO: implement multiplayer
@@ -379,6 +393,7 @@ class SettingsMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
+            self.share_status()
             self.game.check_inputs()
             self.check_events()
             self.game.display.fill((0,0,0))
@@ -483,9 +498,9 @@ class RankedMenu(Menu):
         self.back_button_rm = Button(image=utilities.get_image("back_arrow"), pos=(70, 50),
                             text_input="", font=utilities.get_font(40),
                             base_color=(133, 88, 255), hovering_color=self.game.config["colours"]["aqua"])
-        self.elo, self.division = self.get_my_elo()
+        self.elo, self.division = "unknown", "unknown"
         self.player_preview = Player("",170,250, self.game.config,70)
-        self.winrate = self.get_winrate()
+        self.winrate = "unknown"
         self.challenger_table = Table(self.game.config,header="CHALLENGERS",cols_sizes=[50,350,100,120])
         #challenger table buttons
         #will change the preview (1-10,11-20,... up to 100)
@@ -510,7 +525,7 @@ class RankedMenu(Menu):
     def draw_ranked_names(self,names):
         xs = [120,280,455,660,900,1113]
         ys = [465,460,420,421,420,415]
-        intervals = ["<1000","<2000","<4000","<6000",">= 8000","TOP 100"]
+        intervals = ["<1000","<2000","<4000","<6000",">= 6000","TOP 100"]
         for name, interval, x, y in zip(names, intervals, xs, ys):
             utilities.draw_text(name, 25, x, y,
                                 self.game.display,
@@ -519,8 +534,12 @@ class RankedMenu(Menu):
                                 self.game.display,
                                 color=self.game.config["colours"]["aqua"])
     def display_menu(self):
+        self.elo, self.division = self.get_my_elo()
+        self.winrate = self.get_winrate()
+        challengers_data = self.get_challengers()
         self.run_display = True
         while self.run_display:
+            self.share_status()
             self.game.check_inputs()
             self.check_events()
             # draw background
@@ -540,7 +559,7 @@ class RankedMenu(Menu):
             utilities.draw_text(self.division, 35, 470, 270,
                             self.game.display,
                             color=self.game.config["colours"]["aqua"])
-            utilities.draw_text(self.winrate, 35, 470, 340,
+            utilities.draw_text(str(self.winrate) + "%", 35, 470, 340,
                             self.game.display,
                             color=self.game.config["colours"]["aqua"])
             self.game.display.blit(self.player_preview.image, self.player_preview.rect)
@@ -554,7 +573,7 @@ class RankedMenu(Menu):
                          self.player_preview.y-border_coordinates[self.division]))
 
             #TODO: to be changed to real data from database, just for testing now
-            self.challenger_table.insert_data(data = self.get_challengers(), display=self.game.display)
+            self.challenger_table.insert_data(data = challengers_data, display=self.game.display)
             self.challenger_table.create_positions = False
             self.blit_screen()
 
@@ -572,29 +591,35 @@ class RankedMenu(Menu):
     #TODO: all these methods will send request to the server and plot the data
     #that the server returns (now they are just blueprints)
     def get_my_elo(self):
-        #TODO: database query for my current elo
-        #will return pair (elo,division)
-        #TODO: Temporary, to be deleted
-        elo = 13000
-        division = "CHALLENGER"
+        elo, elo_of_top_100 = self.game.unpack_elo_data(self.game.net.send(self.game.parse_data("get_elo",[
+            self.game.user_credentials["name"]
+        ])))
+        elo = int(elo)
+        elo_of_top_100 = int(elo_of_top_100)
+        division = "WOODEN"
+        if elo >= 1000:
+            division = "IRON"
+        if elo >= 2000:
+            division = "BRONZE"
+        if elo >= 4000:
+            division = "SILVER"
+        if elo >= 6000:
+            division = "GOLD"
+        if elo >= elo_of_top_100:
+            division = "CHALLENGER"
         return (elo,division)
     def get_challengers(self):
         #TODO: query top 100 players ordered by elo
-        challengers = (["1","Brambora","50%","3570","2","Brambora","50%","3570",
-                        "3","Brambora","50%","3570",
-                        "4","Brambora","50%","3570",
-                        "5","Brambora","50%","3570",
-                        "6","Brambora","50%","3570",
-                        "7","Brambora","50%","3570",
-                        "8","Brambora","50%","3570",
-                        "9","Brambora","50%","3570",
-                        "10","Brambora","50%","3570"])
-        return challengers
+        challenger_data = self.game.unpack_challenger_data(self.game.net.send(self.game.parse_data("get_challengers",["no_data"])))
+        final_data = []
+        for row in zip(range(1,11),challenger_data):
+            final_data.append(str(row[0]))
+            final_data.append(str(row[1][0]))
+            final_data.append(str(row[1][1]) + "%")
+            final_data.append(str(row[1][2]))
+        return final_data
     def get_winrate(self):
-        #TODO: Calculating winrate (wins/gp)
-        #TODO: Temporary, to be deleted
-        winrate = "80%"
-        return winrate
+        return self.game.unpack_winrate_data(self.game.net.send(self.game.parse_data("get_winrate",[self.game.user_credentials["name"]])))
 
 
 
@@ -615,6 +640,7 @@ class MatchHistoryMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
+            self.share_status()
             self.game.check_inputs()
             self.check_events()
             self.game.display.fill((0,0,0))
@@ -675,6 +701,7 @@ class CreditsMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
+            self.share_status()
             self.game.check_events()
             if self.game.START_KEY or self.game.BACK_KEY:
                 self.game.curr_menu = self.game.main_menu
