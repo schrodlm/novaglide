@@ -648,8 +648,6 @@ class MatchHistoryMenu(Menu):
     def display_menu(self):
         self.run_display = True
         data_solo , data_duo = self.get_match_history()
-        print(data_solo)
-        print(data_duo)
         while self.run_display:
             self.share_status()
             self.game.check_inputs()
@@ -672,10 +670,18 @@ class MatchHistoryMenu(Menu):
             self.blit_screen()
 
     def get_match_history(self):
-        data_solo , data_duo = self.game.unpack_match_history_data(self.game.net.send(self.game.parse_data("get_match_history",[self.game.client_id])))
-        
-        
-        return ()
+        data_solo , data_duo = self.game.unpack_match_history_data(self.game.net.send(self.game.parse_data("get_match_history",[self.game.user_credentials["name"]])))
+        final_data_solo = []
+        final_data_duo = []
+        for row in data_solo:
+            final_data_solo += [str(row[1]), str(row[3]), str(row[5]), str(row[6]), str(row[4]), str(row[2])]
+        for _ in range(len(data_solo) +1,11):
+            final_data_solo += ["NA","NA","NA","NA","NA","NA"]
+        for row in data_duo:
+            final_data_duo += [str(row[1]) + "-" + str(row[2]), str(row[5]) + "-" + str(row[6]), str(row[9]), str(row[10]), str(row[7]) + "-" + str(row[8]), str(row[3]) + "-" + str(row[4])]
+        for _ in range(len(data_duo) +1,11):
+            final_data_duo += ["NA","NA","NA","NA","NA","NA"]
+        return (final_data_solo, final_data_duo)
 
     def check_events(self):
         for event in pygame.event.get():

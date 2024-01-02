@@ -67,18 +67,25 @@ UNION
                                 (name,))
         return self.cursor.fetchone()
 
-    def get_history(self, client_id, solo = True):
+    def get_history(self, name, solo = True):
         if solo:
-            query = "SELECT * FROM games_1v1 WHERE Player_1_id = %s OR Player_2_id = %s ORDER BY Date DESC LIMIT 10"
+            query = "SELECT * FROM games_1v1 WHERE Player_1_name = %s OR Player_2_name = %s ORDER BY Date DESC LIMIT 10"
+            try:
+                self.cursor.execute(query,
+                                    (name, name,))
+            except psycopg2.InterfaceError:
+                self.create_new_connection()
+                self.cursor.execute(query,
+                                    (name, name,))
         else:
-            query = "SELECT * FROM games_2v2 WHERE Player_1_id = %s OR Player_2_id = %s ORDER BY Date DESC LIMIT 10"
-        try:
-            self.cursor.execute(query,
-                                (client_id, client_id,))
-        except psycopg2.InterfaceError:
-            self.create_new_connection()
-            self.cursor.execute(query,
-                                (client_id, client_id,))
+            query = "SELECT * FROM games_2v2 WHERE Player_1_name = %s OR Player_2_name = %s OR Player_3_name = %s OR Player_4_name = %s ORDER BY Date DESC LIMIT 10"
+            try:
+                self.cursor.execute(query,
+                                    (name, name, name, name))
+            except psycopg2.InterfaceError:
+                self.create_new_connection()
+                self.cursor.execute(query,
+                                    (name, name, name, name))
         return self.cursor.fetchall()
     
     def query_data(self, query = "user_data"):

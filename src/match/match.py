@@ -55,14 +55,14 @@ class Match1v1(Match):
         self.entities.add(self.ball, self.p1, self.p2)
         self.p1.set_up(self)
         self.p2.set_up(self)
-
+        self.bg = pygame.image.load("./../resources/rink_1.jpg").convert_alpha()
 
         #Stat class initialized
         self.match_stats = MatchStats(entities=self.entities)
 
     def draw(self):
         self.display.fill((150,150,150))
-        
+        self.display.blit(self.bg,(0,0))
         # Render and draw the score
         score_text = f"{self.score[0]} - {self.score[1]}"
         score_surface = self.font.render(score_text, True, (255, 255, 255))  # White text
