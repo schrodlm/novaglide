@@ -149,5 +149,8 @@ class Game():
         return data["data"][0]
     def unpack_challenger_data(self, data):
         return data["data"]
+    def unpack_match_history_data(self, data):
+        return (data["data"][0],data["data"][1])
+    
 if __name__ == "__main__":
     raise RuntimeError("This module is designed for import only.")

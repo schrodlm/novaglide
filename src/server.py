@@ -80,11 +80,17 @@ class Server:
 
         if message["flag"] == "get_challengers":
             return self.create_packet("challengers",
-        self.db_query.query_data("get_challengers"))
+            self.db_query.query_data("get_challengers"))
 
         if message["flag"] == "get_winrate":
             return self.create_packet("winrate",[
-        self.db_query.get_user_winrate(message["data"][0])[0]])
+            self.db_query.get_user_winrate(message["data"][0])[0]])
+            
+        if message["flag"] == "get_match_history":
+            return self.create_packet("match_history",[self.db_query.
+                                        get_history(message["data"][0]),
+                                        self.db_query.
+                                        get_history(message["data"][0],solo=False)])
     def handle_login(self, d):
         allowed = self.db_query.allow_user_credentials(d[0], d[1])
         return allowed

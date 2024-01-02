@@ -56,8 +56,8 @@ class Menu(ABC):
     def share_status(self):
         if self.game.online:
             self.game.net.send({"time":datetime.datetime.now(),
-"sender":"unknown", 
-"flag":self.game.client_id,
+"sender":self.game.client_id, 
+"flag":"status",
 "data":[self.game.status]})
         return self
     #ensuring that all menus implement these methods,
@@ -178,7 +178,7 @@ class LogInMenu(Menu):
                             game.parse_data(
                             "log_in_data",
                             [self.username_input.text, self.password_input.text])))
-                        print(self.allow, self.game.client_id)
+
                     if self.allow in ("known user", "registering new user"):
                         self.error_present = False
                         self.allow = None
@@ -501,10 +501,12 @@ class RankedMenu(Menu):
         self.elo, self.division = "unknown", "unknown"
         self.player_preview = Player("",170,250, self.game.config,70)
         self.winrate = "unknown"
+        self.preview_page = 1
+        self.next_preview_page = 2
         self.challenger_table = Table(self.game.config,header="CHALLENGERS",cols_sizes=[50,350,100,120])
         #challenger table buttons
         #will change the preview (1-10,11-20,... up to 100)
-        self.challenger_table_button_left_arrow = Button(image=utilities.get_image("left_arrow"),
+        self.challenger_table_left_arrow = Button(image=utilities.get_image("left_arrow"),
                                     pos=(int((((self.challenger_table.max_x -
                                     self.challenger_table.top_left_coords[0]) // 2)
                                     + self.challenger_table.top_left_coords[0]) - 150),
@@ -519,7 +521,7 @@ class RankedMenu(Menu):
                                     text_input="", font=utilities.get_font(40),
                                     base_color=self.game.config["colours"]["black"], hovering_color=self.game.config["design"]["hovering_colour"])
         self.elements.add(self.back_button_rm)
-        self.elements.add(self.challenger_table_button_left_arrow)
+        self.elements.add(self.challenger_table_left_arrow)
         self.elements.add(self.challenger_table_right_arrow)
         self.elements.add(self.challenger_table)
     def draw_ranked_names(self,names):
@@ -572,8 +574,8 @@ class RankedMenu(Menu):
                         (self.player_preview.x - border_coordinates[self.division] + 3,
                          self.player_preview.y-border_coordinates[self.division]))
 
-            #TODO: to be changed to real data from database, just for testing now
-            self.challenger_table.insert_data(data = challengers_data, display=self.game.display)
+
+            self.challenger_table.insert_data(data = challengers_data[((self.preview_page - 1)*40):((self.preview_page - 1)*40) + 40], display=self.game.display)
             self.challenger_table.create_positions = False
             self.blit_screen()
 
@@ -588,8 +590,15 @@ class RankedMenu(Menu):
                 if self.back_button_rm.check_for_input(self.game.mpos):
                     self.run_display = False
                     self.game.curr_menu = self.game.main_menu
-    #TODO: all these methods will send request to the server and plot the data
-    #that the server returns (now they are just blueprints)
+                if self.challenger_table_right_arrow.check_for_input(self.game.mpos):
+                    self.next_preview_page = self.preview_page + 1
+                    if self.next_preview_page <= 10 and self.next_preview_page >= 1:
+                        self.preview_page = self.next_preview_page
+                if self.challenger_table_left_arrow.check_for_input(self.game.mpos):
+                    self.next_preview_page = self.preview_page - 1
+                    if self.next_preview_page <= 10 and self.next_preview_page >= 1:
+                        self.preview_page = self.next_preview_page
+                    
     def get_my_elo(self):
         elo, elo_of_top_100 = self.game.unpack_elo_data(self.game.net.send(self.game.parse_data("get_elo",[
             self.game.user_credentials["name"]
@@ -612,11 +621,10 @@ class RankedMenu(Menu):
         #TODO: query top 100 players ordered by elo
         challenger_data = self.game.unpack_challenger_data(self.game.net.send(self.game.parse_data("get_challengers",["no_data"])))
         final_data = []
-        for row in zip(range(1,11),challenger_data):
-            final_data.append(str(row[0]))
-            final_data.append(str(row[1][0]))
-            final_data.append(str(row[1][1]) + "%")
-            final_data.append(str(row[1][2]))
+        for row in zip(range(1,101),challenger_data):
+            final_data += [str(row[0]),str(row[1][0]),str(row[1][1]) + "%",str(row[1][2])]
+        for rest in range(len(challenger_data) +1,101):
+            final_data += [str(rest),"NA","NA","NA"]
         return final_data
     def get_winrate(self):
         return self.game.unpack_winrate_data(self.game.net.send(self.game.parse_data("get_winrate",[self.game.user_credentials["name"]])))
@@ -639,6 +647,9 @@ class MatchHistoryMenu(Menu):
         self.draw_solo = True
     def display_menu(self):
         self.run_display = True
+        data_solo , data_duo = self.get_match_history()
+        print(data_solo)
+        print(data_duo)
         while self.run_display:
             self.share_status()
             self.game.check_inputs()
@@ -654,30 +665,17 @@ class MatchHistoryMenu(Menu):
                 self.match_history_table.header = "MATCH HISTORY DUO"
             self.elements.update(self.game.display)
             if self.draw_solo:
-                #TODO: to be connected to real database data returned by the server
-                self.match_history_table.insert_data(data = ["autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",], display=self.game.display)
+                self.match_history_table.insert_data(data = data_solo, display=self.game.display)
             else:
-                self.match_history_table.insert_data(data = ["auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",], display=self.game.display)
+                self.match_history_table.insert_data(data = data_duo, display=self.game.display)
             self.match_history_table.create_positions = False
             self.blit_screen()
+
+    def get_match_history(self):
+        data_solo , data_duo = self.game.unpack_match_history_data(self.game.net.send(self.game.parse_data("get_match_history",[self.game.client_id])))
+        
+        
+        return ()
 
     def check_events(self):
         for event in pygame.event.get():
