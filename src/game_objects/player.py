@@ -5,8 +5,10 @@ from pygame import Vector2
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, name, x, y, config,radius = 40, color = "red"):
+    def __init__(self, name, x, y, config,radius = 40, color = "red", server = False):
+        
         pygame.sprite.Sprite.__init__(self)
+        
         self.config = config
         # width and height
         self.radius = radius
@@ -33,19 +35,18 @@ class Player(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x - self.radius, y - self.radius,
                                 2 * self.radius, 2 * self.radius)
         
-        self.image = pygame.Surface((2 * self.radius, 2 * self.radius)
-                                    , pygame.SRCALPHA)  # make it transparent
-        self.image = self.image.convert_alpha()
-        
-        pygame.draw.circle(self.image, color,
-            (self.radius, self.radius), self.radius)
+        if not server:
+            self.image = pygame.Surface((2 * self.radius, 2 * self.radius)
+                                        , pygame.SRCALPHA)  # make it transparent
+            self.image = self.image.convert_alpha()
+            
+            pygame.draw.circle(self.image, color,
+                (self.radius, self.radius), self.radius)
 
         self.name = name
 
-    def update(self, dt, display, mouse_pos, time):
-        #display can be None on the server side so that 
-        
-        keys = pygame.key.get_pressed()
+    def update(self, dt, display, mouse_pos, time, keys):
+        #display can be None on the server side so that
         #TODO: fix diagonal movement, has to be divided by sqrt2
         if keys[pygame.K_w] and not self.pull:
             self.move(0, -500*dt)

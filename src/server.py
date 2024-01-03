@@ -1,7 +1,7 @@
 import socket
-import sys
 import pickle
 import datetime
+import pygame
 from database.database_query import DBQuery
 from _thread import *
 from configuration_mod import Config
@@ -13,6 +13,7 @@ class Server:
     online_players = set()       # list of id values of all online players
     queued_solo_players = set()
     queued_duo_players = set()
+    notify_playing = set()
     #waiting for a match queued
     matches = []        #list of all the matches       
     def __init__(self, configuration) -> None:
@@ -32,14 +33,19 @@ class Server:
             print(str(e))
         self.s.listen(10)
         print("Waiting for a connection")
+        
+    def threaded_match(self):
+        while len(self.matches) > 0:
+            try:
+                self.handle_playing()
+            except Exception as e:
+                print(e)
     def threaded_client(self, conn):
         #send client his id
         conn.send(str.encode(str("Welcome, please fill the credentials!")))
         reply = ""
         client_id = "unknown"
         while True:
-            if len(self.matches) > 0:
-                self.handle_playing()
             try:
                 #communication with the client
                 #closes when no data is received
@@ -49,30 +55,29 @@ class Server:
                     conn.send(str.encode("Disconnected"))
                     break
                 else:
-                    print(decoded_data)
                     client_id = decoded_data["sender"]
-                    reply = self.read_client_message(decoded_data)
+                    if client_id in self.notify_playing: 
+                        for match in self.matches:
+                            if int(client_id) == int(match.p1_id):
+                                reply = self.create_packet("game_state_1",[1] + match.share_state())
+                            if int(client_id) == int(match.p2_id):
+                                reply = self.create_packet("game_state_1",[2] + match.share_state())
+                            self.notify_playing.remove(client_id)
+                    else:
+                        reply = self.read_client_message(decoded_data)
                 conn.sendall(pickle.dumps(reply))
             except Exception as e :
                 print(e)
                 break
         
         #removing client from subscribers after breaking communication
-        try:
+        if client_id in self.online_players:
             self.online_players.remove(client_id)
-        except ValueError:
-            print("Client id already removed")
-        try:
+        if client_id in self.queued_solo_players:
             self.queued_solo_players.remove(client_id)
-        except ValueError:
-            print("Client id already removed")
-        try:
+        if client_id in self.queued_duo_players:
             self.queued_duo_players.remove(client_id)
-        except ValueError:
-            print("Client id already removed")
-        print("Online players: ",self.online_players)
-        print("Online players: ",self.queued_solo_players)
-        print("Online players: ",self.queued_duo_players)
+
         print("Connection Closed")
         conn.close()
         
@@ -81,7 +86,6 @@ class Server:
         "sender":"server", 
         "flag":flag,
         "data":data}
-        print(packet)
         return packet
     def read_client_message(self, message):
         #handles the logic of the different packet type
@@ -116,38 +120,47 @@ class Server:
                                         solo=False)])
 
         if message["flag"] == "queued_solo":
-            if len(self.queued_solo_players) >= 1:
+            if len(self.queued_solo_players) >= 1 and (message["sender"]) not in self.queued_solo_players:
                 p_1_id = message["sender"]
                 p_2_id = self.queued_solo_players.pop()
-                player_1 = Player(self.db_query.get_user_name(int(p_1_id))[0], 100,360,self.config, color = "green")
-                player_2 = Player(self.db_query.get_user_name(int(p_2_id))[0], 1180,360,self.config, color = "green")
-                ball = Ball(self.config)
-                self.matches.append(Match1v1(self.config, player_1, player_2, ball, p_1_id, p_2_id))
-                return self.create_packet("game_started",["no_data"])
+                player_1 = Player(self.db_query.get_user_name(int(p_1_id))[0], 100,360,self.config, color = "green",server=True)
+                player_2 = Player(self.db_query.get_user_name(int(p_2_id))[0], 1180,360,self.config, color = "green",server=True)
+                ball = Ball(self.config,server=True)
+                new_match = Match1v1(self.config, player_1, player_2, ball, p_1_id, p_2_id)
+                self.matches.append(new_match)
+                start_new_thread(self.threaded_match, ())
+                self.notify_playing.add(int(p_1_id))
+                self.notify_playing.add(int(p_2_id))
+                return self.create_packet("Waiting_for_opponent",["no_data"])
             else:
                 self.queued_solo_players.add(int(message["sender"]))
-                return self.create_packet("waiting_for_opponents",["no_data"])
+                return self.create_packet("Waiting_for_opponent",["no_data"])
         if message["flag"] == "ingame":
-            return self.stream_match(message["sender"])
+            return self.stream_match(message)
     def handle_playing(self):
         for match in self.matches:
-            match.match_loop()
-
-    def stream_match(self, sender):
+            end = match.match_loop()
+            if end:
+                #TODO: send notification to the clients
+                try:
+                    self.matches.remove(match)
+                except ValueError:
+                    print("match already removed")
+    def stream_match(self, message):
         for match in self.matches:
-            if int(sender) == match.p1_id:
+            if int(message["sender"]) == match.p1_id:
+                match.update_player_1(message["data"])
                 return self.create_packet("game_state_1",[1] + match.share_state())
-            elif int(sender) == match.p2_id:
+            elif int(message["sender"]) == match.p2_id:
+                match.update_player_2(message["data"])
                 return self.create_packet("game_state_1",[2] + match.share_state())
-            
-    def handle_queued(self):
-        ...
         
     def handle_login(self, d):
         allowed = self.db_query.allow_user_credentials(d[0], d[1])
         return allowed
     
     def start_server(self):
+        pygame.init()
         while True:
             conn, addr = self.s.accept()
             print("Connected to: ", addr)

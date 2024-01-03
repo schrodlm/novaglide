@@ -4,8 +4,7 @@ from configuration_mod import Config
 # --------------------------BALL-----------------------------------
 
 class Ball(pygame.sprite.Sprite):
-
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, server = False):
         pygame.sprite.Sprite.__init__(self)
         self.config = config
         #radius
@@ -17,13 +16,12 @@ class Ball(pygame.sprite.Sprite):
         self.rect = pygame.Rect(self.x - self.radius, self.y - self.radius,
                                 2 * self.radius, 2 * self.radius)
         
-        self.image = pygame.Surface((2 * self.radius, 2 * self.radius)
-                                    , pygame.SRCALPHA)  # make it transparent
-        
-        self.image = self.image.convert_alpha()
-
-        pygame.draw.circle(self.image, "black",
-            (self.radius, self.radius), self.radius)
+        if not server:
+            self.image = pygame.Surface((2 * self.radius, 2 * self.radius)
+                                        , pygame.SRCALPHA)  # make it transparent
+            self.image = self.image.convert_alpha()
+            pygame.draw.circle(self.image, "black",
+                (self.radius, self.radius), self.radius)
 
         self.speed = Vector2(0, 0)
 

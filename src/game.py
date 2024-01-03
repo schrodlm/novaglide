@@ -33,7 +33,7 @@ class Game():
         self.online = False
         #offline/waiting_for_approval/online(in menu)/queued/ingame
         self.status = "offline"
-
+        self.response = None
         self.running, self.playing = True,False
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
         self.WIDTH, self.HEIGHT = self.config["resolution"]["width"], self.config["resolution"]["height"]
@@ -63,7 +63,7 @@ class Game():
         self.player_1 = Player("unknown", 100,360,self.config, color = "green")
         self.player_2 = Player("unknown", 1180,360,self.config, color = "blue")
         self.ball = Ball(self.config)
-        
+        self.font = utilities.get_font(32)
         goal_height = self.config["match"]["goal_height"]
         goal_width = self.config["match"]["goal_width"]
         self.goal_1 = pygame.Rect(0, (self.display.get_height() - goal_height) // 2, goal_width, goal_height)
@@ -88,6 +88,7 @@ class Game():
             self.Draw(match_data)
             self.check_inputs()
             self.share_inputs()
+            match_data = self.share_inputs()["data"]
         #match_stats = curr_match.get_match_stats()
         self.play_match = False
         #self.curr_menu = EndScreenMenu(self, match_stats)
@@ -96,7 +97,7 @@ class Game():
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
 
     def share_inputs(self):
-        self.parse_data("ingame",[self.keys_pressed, self.mpos])
+        return self.net.send(self.parse_data("ingame",[self.mpos, self.keys_pressed]))
     
     def check_inputs(self):
         self.mpos = pygame.mouse.get_pos()
@@ -116,7 +117,13 @@ class Game():
         pygame.draw.rect(self.display, (255, 255, 255), self.border, self.border_width)
 
         #update all positions according to the server
-        
+        self.player_1.x, self.player_1.y = match_data[6], match_data[7]
+        self.player_2.x, self.player_2.y = match_data[8], match_data[9]
+        self.ball.x, self.ball.y = match_data[18], match_data[19]
+        remaining_time = match_data[1]
+        timer_surface = self.font.render(f"Time Left: {int(remaining_time)}s", True, (255, 255, 255))
+        self.display.blit(timer_surface, (10, 10))  
+
         self.player_1.setRect()
         self.player_2.setRect()
         self.ball.setRect()

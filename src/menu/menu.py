@@ -54,12 +54,13 @@ class Menu(ABC):
         self.game.reset_keys()
         return self
     def share_status(self):
+        response = None
         if self.game.online:
-            self.game.net.send({"time":datetime.datetime.now(),
+            response = self.game.net.send({"time":datetime.datetime.now(),
 "sender":self.game.client_id, 
-"flag":"status",
-"data":[self.game.status]})
-        return self
+"flag":self.game.status,
+"data":["no_data"]})
+        return response
     #ensuring that all menus implement these methods,
     #to make the API consistent
     @abstractmethod
@@ -257,7 +258,10 @@ class MainMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.share_status()
+            self.game.response = self.share_status()
+            if self.game.response is not None and self.game.response["flag"] == "game_state_1":
+                self.run_display = False
+                self.game.play_match = True
             #tick and fill new background
             self.game.check_inputs()
             self.game.display.fill((0,0,0))
