@@ -73,7 +73,7 @@ class Table(pygame.sprite.Sprite):
     """
     def __init__(self, config: Dict,header: str = "", row_size: int = 32,
                 top_left_coords: Tuple[int,int]= (640,50),font_size: int = 16, 
-                header_font_size: int = 25, n_rows: int = 10, 
+                header_font_size: int = 25, n_rows: int = 10,
                 cols_sizes: List[int]= None):
         #config, init sprite
         self.config = config

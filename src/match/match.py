@@ -1,5 +1,6 @@
 """_summary_
 """
+import datetime
 import pygame
 from pygame import Vector2
 from game_objects.ball import Ball
@@ -8,12 +9,11 @@ from match.match_stats import MatchStats
 pygame.init()
 
 class Match():
-    def __init__(self,display):
-        self.display = display
-        self.match_time = 5*60
+    def __init__(self, config):
+        self.match_duration = 5*60
         self.score = (0,0)
         self.tiebreak = False
-
+        self.config = config
         self.entities = pygame.sprite.Group()
         self.solids = pygame.sprite.Group()
 
@@ -22,107 +22,51 @@ class Match():
         self.last_tick = pygame.time.get_ticks()
         self.ttime = self.clock.tick()
         self.clock.tick(60)
-        self.keys_pressed = pygame.key.get_pressed()
-
         self.playing = True
-
-
          # Define goals as rectangles
         goal_width = 20  # Width of the goal, adjust as needed
         goal_height = 100  # Height of the goal, adjust as needed
-        self.goal1 = pygame.Rect(0, (self.display.get_height() - goal_height) // 2, goal_width, goal_height)
-        self.goal2 = pygame.Rect(self.display.get_width() - goal_width, (self.display.get_height() - goal_height) // 2, goal_width, goal_height)
+        self.max_height, self.max_width = self.config["resolution"]["height"], self.config["resolution"]["width"]
+        self.goal1 = pygame.Rect(0, (self.max_height - goal_height) // 2, goal_width, goal_height)
+        self.goal2 = pygame.Rect(self.max_width - goal_width, (self.max_height - goal_height) // 2, goal_width, goal_height)
 
         # Define borders
+        self.display = pygame.Surface((self.max_width,self.max_height))
         self.border = self.display.get_rect()
 
-        self.font = pygame.font.Font(None, 36)
-
-         # Initialize the match timer
-        self.match_duration = 5  # 5 minutes in seconds
+        self.mpos_1 = (0,0)
+        self.mpos_2 = (0,0)
         self.start_time = pygame.time.get_ticks()  # Get the current time in milliseconds
-
-
-
-
+        self.elapsed_time = 0
+        self.dash_time_1 = 0
+        self.hook_time_1 = 0
+        self.dash_time_2 = 0
+        self.hook_time_2 = 0
+        self.remaining_time = self.match_duration
 class Match1v1(Match):
 
-    def __init__(self, display, p1, p2, ball):
-        super().__init__(display)
+    def __init__(self, config, p1, p2, ball, p1_id, p2_id):
+        super().__init__(config)
+        self.p1_id = p1_id
+        self.p2_id = p2_id
         self.p1 = p1
         self.p2 = p2
         self.ball = ball
         self.entities.add(self.ball, self.p1, self.p2)
-        self.p1.set_up(self)
-        self.p2.set_up(self)
-        self.bg = pygame.image.load("./../resources/rink_1.jpg").convert_alpha()
-
         #Stat class initialized
         self.match_stats = MatchStats(entities=self.entities)
 
-    def draw(self):
-        self.display.fill((150,150,150))
-        self.display.blit(self.bg,(0,0))
-        # Render and draw the score
-        score_text = f"{self.score[0]} - {self.score[1]}"
-        score_surface = self.font.render(score_text, True, (255, 255, 255))  # White text
-        score_x = self.display.get_width() // 2 - score_surface.get_width() // 2
-        score_y = 10  # 10 pixels from the top
-        self.display.blit(score_surface, (score_x, score_y))
-
-        self.dt = self.clock.tick(60) / 1000
-
-        
-
-            # Draw goals
-        pygame.draw.rect(self.display, "red", self.goal1)  # White goal
-        pygame.draw.rect(self.display, "red", self.goal2)  # White goal
-
-        # Draw the playfield border
-        border_thickness = 5
-        pygame.draw.rect(self.display, (255, 255, 255), self.border, border_thickness)
-
-         # Display the timer
-        elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000
-        remaining_time = max(self.match_duration - elapsed_time, 0)
-        timer_surface = self.font.render(f"Time Left: {int(remaining_time)}s", True, (255, 255, 255))
-        self.display.blit(timer_surface, (10, 10))  # Adjust position as needed
-
-        self.p1.update(self.dt, self.display, pygame.mouse.get_pos(), elapsed_time)
-        self.p2.update(self.dt)
-        self.ball.update(self.border)
-        
-        dash_time = 10 - abs(elapsed_time - self.p1.dash_cooldown_started)
-        hook_time = 20 - abs(elapsed_time - self.p1.hook_cooldown_started)
-        dash_time = max(0,dash_time)
-        dash_time = min(dash_time, 10)
-        hook_time = max(0,hook_time)
-        hook_time = min(hook_time, 20)
-        if self.p1.dash_cooldown_started == 0:
-            dash_time = 0
-        if self.p1.hook_cooldown_started == 0:
-            hook_time = 0
-        cooldown_surace_dash = self.font.render(f"Dash: {int(dash_time)}s", True, (255, 255, 255))
-        cooldown_surace_hook = self.font.render(f"Hook: {int(hook_time)}s", True, (255, 255, 255))
-        self.display.blit(cooldown_surace_dash, (550, 650))
-        self.display.blit(cooldown_surace_hook, (700, 650))
-        for e in self.entities: #update blocks etc.
-            self.display.blit(e.image, e.rect)
     def check_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
 
     def reset_ball(self):
-        center_x = self.display.get_width() // 2
-        center_y = self.display.get_height() // 2
-        self.ball.x = center_x
-        self.ball.y = center_y
-
+        self.ball.x = self.max_width // 2
+        self.ball.y = self.max_height // 2
         # Reset the ball's speed
         # You can set this to an initial speed or to zero
         self.ball.speed = Vector2(0, 0)
-
         # Update the ball's rect to reflect the new position
         self.ball.setRect()
 
@@ -158,6 +102,39 @@ class Match1v1(Match):
             # 2. Determine the new speed of the ball
             speed_magnitude = 20  # You can adjust this value as needed
             self.ball.speed = collision_normal * speed_magnitude
+        
+        self.dt = self.clock.tick(60) / 1000
+          
+        self.elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000
+        self.remaining_time = max(self.match_duration - self.elapsed_time, 0)
+
+        self.p1.update(self.dt, None, pygame.mouse.get_pos(), self.elapsed_time)
+        self.p2.update(self.dt)
+        self.ball.update(self.border)
+        
+        #calculating cooldowns for both players
+        #Player_1
+        self.dash_time_1 = 10 - abs(self.elapsed_time - self.p1.dash_cooldown_started)
+        self.hook_time_1 = 20 - abs(self.elapsed_time - self.p1.hook_cooldown_started)
+        self.dash_time_1 = max(0,self.dash_time_1)
+        self.dash_time_1 = min(self.dash_time_1, 10)
+        self.hook_time_1 = max(0,self.hook_time_1)
+        self.hook_time_1 = min(self.hook_time_1, 20)
+        if self.p1.dash_cooldown_started == 0:
+            self.dash_time_1 = 0
+        if self.p1.hook_cooldown_started == 0:
+            self.hook_time_1 = 0
+        #Player_2
+        self.dash_time_2 = 10 - abs(self.elapsed_time - self.p2.dash_cooldown_started)
+        self.hook_time_2 = 20 - abs(self.elapsed_time - self.p2.hook_cooldown_started)
+        self.dash_time_2 = max(0,self.dash_time_2)
+        self.dash_time_2 = min(self.dash_time_2, 10)
+        self.hook_time_2 = max(0,self.hook_time_2)
+        self.hook_time_2 = min(self.hook_time_2, 20)
+        if self.p2.dash_cooldown_started == 0:
+            self.dash_time_2 = 0
+        if self.p2.hook_cooldown_started == 0:
+            self.hook_time_2 = 0
     
 
     def end_match(self):
@@ -173,14 +150,16 @@ class Match1v1(Match):
     def get_match_stats(self):
         return self.match_stats
 
+    def share_state(self):
+        return [self.remaining_time, self.score[0], self.score[1],
+            self.p1.x, self.p1.y, self.mpos_1[0],self.mpos_1[1], 
+            self.mpos_2[0],self.mpos_2[1]]
 
     def match_loop(self):
         # main game loop
-            self.check_events()
-            self.update_game_state()
-            self.draw()
-
-             # Update the timer
-            elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000  # Convert milliseconds to seconds
-            if elapsed_time >= self.match_duration:
-                self.end_match()
+        self.check_events()
+        self.update_game_state()
+            # Update the timer
+        self.elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000  # Convert milliseconds to seconds
+        if self.elapsed_time >= self.match_duration:
+            self.end_match()

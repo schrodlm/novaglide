@@ -42,5 +42,7 @@ match:
       x: 400
       y: 400
   border_width: 5
+  goal_height: 100
+  goal_width: 20
 
   match_4: 

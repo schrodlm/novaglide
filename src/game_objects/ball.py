@@ -5,7 +5,7 @@ from configuration_mod import Config
 
 class Ball(pygame.sprite.Sprite):
 
-    def __init__(self, x: float, y: float, config: Config):
+    def __init__(self, config: Config):
         pygame.sprite.Sprite.__init__(self)
         self.config = config
         #radius
@@ -13,10 +13,8 @@ class Ball(pygame.sprite.Sprite):
 
         #ball should spawn in a middle of a field
         self.x, self.y = self.config["resolution"]["width"]/2, self.config["resolution"]["height"]/2
-        self.speed = (x, y)
         
-
-        self.rect = pygame.Rect(x - self.radius, y - self.radius,
+        self.rect = pygame.Rect(self.x - self.radius, self.y - self.radius,
                                 2 * self.radius, 2 * self.radius)
         
         self.image = pygame.Surface((2 * self.radius, 2 * self.radius)

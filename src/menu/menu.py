@@ -1,9 +1,9 @@
 import sys
 import json
-import pygame
-import utilities
 import datetime
 from abc import ABC, abstractmethod
+import pygame
+import utilities
 from menu_elements.input_box import InputBox
 from menu_elements.button import Button
 from menu_elements.table import Table
@@ -288,7 +288,7 @@ class MainMenu(Menu):
                 if self.play_1v1_button.check_for_input(self.game.mpos):
                     self.run_display = False
                     self.game.play_match = True
-
+                    break
                 if self.play_2v2_button.check_for_input(self.game.mpos):
                     #TODO: implement multiplayer
                     print("2v2 selected")
@@ -389,7 +389,6 @@ class SettingsMenu(Menu):
         self.buttons.add(self.map_button_right_arrow)
         self.buttons.add(self.exit_button)
 
-
     def display_menu(self):
         self.run_display = True
         while self.run_display:
@@ -432,7 +431,6 @@ class SettingsMenu(Menu):
                 button.change_color(self.game.mpos)
             self.buttons.update(self.game.display)
             self.blit_screen()
-
 
     def check_events(self):
         for event in pygame.event.get():
@@ -623,8 +621,9 @@ class RankedMenu(Menu):
         final_data = []
         for row in zip(range(1,101),challenger_data):
             final_data += [str(row[0]),str(row[1][0]),str(row[1][1]) + "%",str(row[1][2])]
-        for rest in range(len(challenger_data) +1,101):
-            final_data += [str(rest),"NA","NA","NA"]
+        if len(challenger_data) < 100:
+            for rest in range(len(challenger_data) +1,101):
+                final_data += [str(rest),"NA","NA","NA"]
         return final_data
     def get_winrate(self):
         return self.game.unpack_winrate_data(self.game.net.send(self.game.parse_data("get_winrate",[self.game.user_credentials["name"]])))
@@ -675,12 +674,14 @@ class MatchHistoryMenu(Menu):
         final_data_duo = []
         for row in data_solo:
             final_data_solo += [str(row[1]), str(row[3]), str(row[5]), str(row[6]), str(row[4]), str(row[2])]
-        for _ in range(len(data_solo) +1,11):
-            final_data_solo += ["NA","NA","NA","NA","NA","NA"]
+        if len(data_solo)< 10:
+            for _ in range(len(data_solo) +1,11):
+                final_data_solo += ["NA","NA","NA","NA","NA","NA"]
         for row in data_duo:
             final_data_duo += [str(row[1]) + "-" + str(row[2]), str(row[5]) + "-" + str(row[6]), str(row[9]), str(row[10]), str(row[7]) + "-" + str(row[8]), str(row[3]) + "-" + str(row[4])]
-        for _ in range(len(data_duo) +1,11):
-            final_data_duo += ["NA","NA","NA","NA","NA","NA"]
+        if len(data_duo) < 10:
+            for _ in range(len(data_duo) +1,11):
+                final_data_duo += ["NA","NA","NA","NA","NA","NA"]
         return (final_data_solo, final_data_duo)
 
     def check_events(self):
@@ -706,7 +707,7 @@ class CreditsMenu(Menu):
         self.run_display = True
         while self.run_display:
             self.share_status()
-            self.game.check_events()
+            self.check_events()
             if self.game.START_KEY or self.game.BACK_KEY:
                 self.game.curr_menu = self.game.main_menu
                 self.run_display = False

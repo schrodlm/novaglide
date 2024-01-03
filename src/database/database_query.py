@@ -45,7 +45,18 @@ UNION
             self.cursor.execute(query,
                                 (name,))
         return self.cursor.fetchone()
-        
+    
+    def get_user_name(self, index):
+        query = "SELECT Name FROM user_data WHERE id =%s"
+        try:
+            self.cursor.execute(query,
+                                (index,))
+        except psycopg2.InterfaceError:
+            self.create_new_connection()
+            self.cursor.execute(query,
+                                (index,))
+        return self.cursor.fetchone()
+
     def get_user_elo(self, name):
         query = "SELECT Elo FROM user_data WHERE Name =%s"
         try:

@@ -5,12 +5,14 @@ import datetime
 from database.database_query import DBQuery
 from _thread import *
 from configuration_mod import Config
-
-
+from match.match import Match1v1
+from game_objects.player import Player
+from game_objects.ball import Ball
 
 class Server:
-    online_players = []         # list of id values of all online players
-    available_players = []  # list of id values of all online players
+    online_players = set()       # list of id values of all online players
+    queued_solo_players = set()
+    queued_duo_players = set()
     #waiting for a match queued
     matches = []        #list of all the matches       
     def __init__(self, configuration) -> None:
@@ -34,7 +36,10 @@ class Server:
         #send client his id
         conn.send(str.encode(str("Welcome, please fill the credentials!")))
         reply = ""
+        client_id = "unknown"
         while True:
+            if len(self.matches) > 0:
+                self.handle_playing()
             try:
                 #communication with the client
                 #closes when no data is received
@@ -45,12 +50,29 @@ class Server:
                     break
                 else:
                     print(decoded_data)
+                    client_id = decoded_data["sender"]
                     reply = self.read_client_message(decoded_data)
                 conn.sendall(pickle.dumps(reply))
             except Exception as e :
                 print(e)
                 break
-
+        
+        #removing client from subscribers after breaking communication
+        try:
+            self.online_players.remove(client_id)
+        except ValueError:
+            print("Client id already removed")
+        try:
+            self.queued_solo_players.remove(client_id)
+        except ValueError:
+            print("Client id already removed")
+        try:
+            self.queued_duo_players.remove(client_id)
+        except ValueError:
+            print("Client id already removed")
+        print("Online players: ",self.online_players)
+        print("Online players: ",self.queued_solo_players)
+        print("Online players: ",self.queued_duo_players)
         print("Connection Closed")
         conn.close()
         
@@ -67,7 +89,7 @@ class Server:
             allowed = self.handle_login(message["data"])
             if allowed in ("known user", "registering new user"):
                 client_id = self.db_query.get_user_id(message["data"][0])
-                self.online_players.append(client_id[0])
+                self.online_players.add(client_id[0])
                 return self.create_packet("change_of_status", ["online",
                 allowed, client_id[0]])
             else:
@@ -90,7 +112,37 @@ class Server:
             return self.create_packet("match_history",[self.db_query.
                                         get_history(message["data"][0]),
                                         self.db_query.
-                                        get_history(message["data"][0],solo=False)])
+                                        get_history(message["data"][0],
+                                        solo=False)])
+
+        if message["flag"] == "queued_solo":
+            if len(self.queued_solo_players) >= 1:
+                p_1_id = message["sender"]
+                p_2_id = self.queued_solo_players.pop()
+                player_1 = Player(self.db_query.get_user_name(int(p_1_id))[0], 100,360,self.config, color = "green")
+                player_2 = Player(self.db_query.get_user_name(int(p_2_id))[0], 1180,360,self.config, color = "green")
+                ball = Ball(self.config)
+                self.matches.append(Match1v1(self.config, player_1, player_2, ball, p_1_id, p_2_id))
+                return self.create_packet("game_started",["no_data"])
+            else:
+                self.queued_solo_players.add(int(message["sender"]))
+                return self.create_packet("waiting_for_opponents",["no_data"])
+        if message["flag"] == "ingame":
+            return self.stream_match(message["sender"])
+    def handle_playing(self):
+        for match in self.matches:
+            match.match_loop()
+
+    def stream_match(self, sender):
+        for match in self.matches:
+            if int(sender) == match.p1_id:
+                return self.create_packet("game_state_1",[1] + match.share_state())
+            elif int(sender) == match.p2_id:
+                return self.create_packet("game_state_1",[2] + match.share_state())
+            
+    def handle_queued(self):
+        ...
+        
     def handle_login(self, d):
         allowed = self.db_query.allow_user_credentials(d[0], d[1])
         return allowed

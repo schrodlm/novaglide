@@ -29,6 +29,7 @@ class Player(pygame.sprite.Sprite):
         self.end_hook = False
         self.pull = False
         self.dashing = False
+        
         self.rect = pygame.Rect(x - self.radius, y - self.radius,
                                 2 * self.radius, 2 * self.radius)
         
@@ -42,6 +43,8 @@ class Player(pygame.sprite.Sprite):
         self.name = name
 
     def update(self, dt, display, mouse_pos, time):
+        #display can be None on the server side so that 
+        
         keys = pygame.key.get_pressed()
         #TODO: fix diagonal movement, has to be divided by sqrt2
         if keys[pygame.K_w] and not self.pull:
@@ -112,8 +115,11 @@ class Player(pygame.sprite.Sprite):
             self.coords_current.x = self.x
             self.coords_current.y = self.y
         else:
-            pygame.draw.line(display, "orange4", (self.x, self.y),
-                        (self.hook_coords.x, self.hook_coords.y),3)
+            if display is not None:
+                pygame.draw.line(display, "orange4", (self.x, self.y),
+                            (self.hook_coords.x, self.hook_coords.y),3)
+
+    
     def pull_player(self,dt):
         direction = self.hook_initial - self.coords_current
         self.coords_current += 1200*dt*(direction.normalize())
@@ -194,59 +200,8 @@ class Player(pygame.sprite.Sprite):
             self.dash_on_cooldown = False
         if time - self.hook_cooldown_started > 20:
             self.hook_on_cooldown = False
-    def set_up(self, match):
-        pass
-# -------------------------- BOT -----------------------------------
 
 
-class Bot(pygame.sprite.Sprite):
-    def __init__(self, x, y, config,radius = 40, color = "blue"):
-        pygame.sprite.Sprite.__init__(self)
-        self.config = config
-        # width and height
-        self.radius = radius
-        self.x, self.y = x, y
-
-        self.rect = pygame.Rect(x - self.radius, y - self.radius,
-                                2 * self.radius, 2 * self.radius)
-
-        self.image = pygame.Surface((2 * self.radius, 2 * self.radius)
-                                    , pygame.SRCALPHA)  # make it transparent
-        
-        self.image = self.image.convert_alpha()
-        
-        pygame.draw.circle(self.image, color,
-            (self.radius, self.radius), self.radius)
-        
-        self.ball = None
-        self.name = "BOT"
-    
-    def set_up(self, match):
-        self.ball = match.ball
-
-    def update(self, dt):
-        # Basic AI logic to track the ball's y-coordinate
-        if self.ball.y > self.y:
-            self.move(dt, 1)  # Move down
-        elif self.ball.y < self.y:
-            self.move(dt, -1)  # Move up
-
-    def move(self, dx, dy):
-        self.x += dx
-        self.y += dy
-        if self.x < 0:
-            self.x = self.config["resolution"]["width"]
-        elif self.x > self.config["resolution"]["width"]:
-            self. x = 0
-        if self.y < 0:
-            self.y = self.config["resolution"]["height"]
-        elif self.y > self.config["resolution"]["height"]:
-            self.y = 0
-        self.setRect() 
-
-    def setRect(self):
-        self.rect = pygame.Rect(self.x - self.radius, self.y - self.radius,
-                                2 * self.radius, 2 * self.radius)
         
 if __name__ == "__main__":
     raise RuntimeError("This module is designed for import only.")
