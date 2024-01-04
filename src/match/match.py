@@ -2,7 +2,6 @@
 """
 import pygame
 from pygame import Vector2
-from game_objects.ball import Ball
 from match.match_stats import MatchStats
 
 

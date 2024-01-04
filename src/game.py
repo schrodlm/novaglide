@@ -6,16 +6,13 @@ RuntimeError
     When called as the main script and not imported
 """
 
-import sys
 import datetime
 import pygame
 import pygame.locals
 import utilities
 from networking.network import Network
-from database.database_query import DBQuery
 from game_objects.player import Player
 from menu.menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
-from match.match import Match1v1
 from game_objects.ball import Ball
 from menu.endscreen import EndScreenMenu
 

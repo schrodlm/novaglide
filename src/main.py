@@ -2,7 +2,6 @@
 """
 from game import Game
 from configuration_mod import Config
-import time
 class Client:
     def __init__(self) -> None:
         self.config = Config()

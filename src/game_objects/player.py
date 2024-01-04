@@ -1,5 +1,4 @@
 import pygame
-import numpy as np 
 from pygame import Vector2
 # --------------------------PLAYER-----------------------------------
 
