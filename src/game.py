@@ -108,18 +108,53 @@ class Game():
         self.screen.blit(self.display, (0,0))
         self.display.fill((150,150,150))
         self.display.blit(self.bg,(0,0))
-        #draw border
+
+        #draw goals and border
         pygame.draw.rect(self.display, "red", self.goal_1)  # White goal
         pygame.draw.rect(self.display, "red", self.goal_2)  # White goal
         pygame.draw.rect(self.display, (255, 255, 255), self.border, self.border_width)
 
+        #draw scoreboard
+        score_text = f"{match_data[2]} - {match_data[3]}"
+        score_surface = self.font.render(score_text, True, (255, 255, 255))  # White text
+        score_x = self.display.get_width() // 2 - score_surface.get_width() // 2
+        score_y = 10  # 10 pixels from the top
+        self.display.blit(score_surface, (score_x, score_y))
+
+
         #update all positions according to the server
         self.player_1.x, self.player_1.y = match_data[6], match_data[7]
         self.player_2.x, self.player_2.y = match_data[8], match_data[9]
+        self.player_1.hook_coords.x, self.player_1.hook_coords.y = match_data[10], match_data[11]
+        self.player_2.hook_coords.x, self.player_2.hook_coords.y = match_data[12], match_data[13]  
         self.ball.x, self.ball.y = match_data[18], match_data[19]
+        
+        #display timer
         remaining_time = match_data[1]
         timer_surface = self.font.render(f"Time Left: {int(remaining_time)}s", True, (255, 255, 255))
         self.display.blit(timer_surface, (10, 10))  
+        
+        #if the player is hooking draw the hook
+        if match_data[20]:
+            self.player_1.hook(0, self.display)
+        if match_data[21]:
+            self.player_2.hook(0, self.display)
+
+        #draw cooldowns indicating your side
+        if match_data[0] == 1:
+            cooldown_surace_dash_1 = self.font.render(f"Dash: {int(match_data[14])}s", True, (0,221,85))
+            cooldown_surace_hook_1 = self.font.render(f"Hook: {int(match_data[15])}s", True, (0,221,85))
+            cooldown_surace_dash_2 = self.font.render(f"Dash: {int(match_data[16])}s", True, (255, 255, 255))
+            cooldown_surace_hook_2 = self.font.render(f"Hook: {int(match_data[17])}s", True, (255, 255, 255))
+        else:
+            cooldown_surace_dash_1 = self.font.render(f"Dash: {int(match_data[14])}s", True, (255, 255, 255))
+            cooldown_surace_hook_1 = self.font.render(f"Hook: {int(match_data[15])}s", True, (255, 255, 255))
+            cooldown_surace_dash_2 = self.font.render(f"Dash: {int(match_data[16])}s", True, (0,221,85))
+            cooldown_surace_hook_2 = self.font.render(f"Hook: {int(match_data[17])}s", True, (0,221,85))
+        self.display.blit(cooldown_surace_dash_1, (50, 630))
+        self.display.blit(cooldown_surace_hook_1, (50, 680))
+        self.display.blit(cooldown_surace_dash_2, (1000, 630))
+        self.display.blit(cooldown_surace_hook_2, (1000, 680))
 
         self.player_1.setRect()
         self.player_2.setRect()

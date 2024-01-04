@@ -107,7 +107,8 @@ class Player(pygame.sprite.Sprite):
 
     def hook(self, dt, display):
         direction = self.hook_initial - self.hook_coords
-        self.hook_coords += 1200*dt*(direction.normalize())
+        if display is None:
+            self.hook_coords += 1200*dt*(direction.normalize())
         if not self.hook_invarint():
             #begin pulling after geting out of boundary
             self.end_hook = True

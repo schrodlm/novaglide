@@ -3,7 +3,7 @@ import pickle
 import datetime
 import pygame
 from database.database_query import DBQuery
-from _thread import *
+from _thread import start_new_thread
 from configuration_mod import Config
 from match.match import Match1v1
 from game_objects.player import Player
@@ -146,13 +146,14 @@ class Server:
                     self.matches.remove(match)
                 except ValueError:
                     print("match already removed")
+                print("Curent matches: ", self.matches)
     def stream_match(self, message):
         for match in self.matches:
             if int(message["sender"]) == match.p1_id:
-                match.update_player_1(message["data"])
+                match.p_1_update = message["data"]
                 return self.create_packet("game_state_1",[1] + match.share_state())
             elif int(message["sender"]) == match.p2_id:
-                match.update_player_2(message["data"])
+                match.p_2_update = message["data"]
                 return self.create_packet("game_state_1",[2] + match.share_state())
         
     def handle_login(self, d):

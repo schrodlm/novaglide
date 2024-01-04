@@ -54,7 +54,9 @@ class Match1v1(Match):
         self.entities.add(self.ball, self.p1, self.p2)
         #Stat class initialized
         self.match_stats = MatchStats(entities=self.entities)
-
+        self.p_1_update = None
+        self.p_2_update = None
+        
     def reset_ball(self):
         self.ball.x = self.max_width // 2
         self.ball.y = self.max_height // 2
@@ -101,6 +103,10 @@ class Match1v1(Match):
         self.elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000
         self.remaining_time = max(self.match_duration - self.elapsed_time, 0)
 
+        if self.p_1_update is not None:
+            self.update_player_1(self.p_1_update)
+        if self.p_2_update is not None:
+            self.update_player_2(self.p_2_update)
         self.ball.update(self.border)
         
         #calculating cooldowns for both players
@@ -149,10 +155,11 @@ class Match1v1(Match):
     def share_state(self):
         return [self.remaining_time, self.score[0], self.score[1],
                 self.p1.name, self.p2.name,
-            self.p1.x, self.p1.y, self.p2.x, self.p2.y, self.mpos_1[0],self.mpos_1[1],
-            self.mpos_2[0],self.mpos_2[1], self.dash_time_1,
+            self.p1.x, self.p1.y, self.p2.x, self.p2.y, self.p1.hook_coords.x, 
+            self.p1.hook_coords.y,
+            self.p2.hook_coords.x, self.p2.hook_coords.y, self.dash_time_1,
             self.hook_time_1, self.dash_time_2 ,self.hook_time_2,
-            self.ball.x, self.ball.y]
+            self.ball.x, self.ball.y, self.p1.hooking,self.p2.hooking]
 
     def match_loop(self):
         # main game loop
