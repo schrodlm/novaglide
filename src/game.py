@@ -95,7 +95,7 @@ class Game():
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
 
     def share_inputs(self):
-        return self.net.send(self.parse_data("ingame",[self.mpos, self.keys_pressed]))
+        return self.net.send(self.parse_data("ingame",[self.mpos, self.keys_pressed, self.settings_menu.controls]))
     
     def check_inputs(self):
         self.mpos = pygame.mouse.get_pos()
