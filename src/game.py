@@ -12,7 +12,7 @@ import pygame.locals
 import utilities
 from networking.network import Network
 from game_objects.player import Player
-from menu.menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu
+from menu.menu import MainMenu, SettingsMenu, CreditsMenu, LogInMenu, RankedMenu, MatchHistoryMenu, LoadingScreenMenu
 from game_objects.ball import Ball
 from menu.endscreen import EndScreenMenu
 
@@ -53,6 +53,7 @@ class Game():
         self.login_menu = LogInMenu(self)
         self.ranked_menu = RankedMenu(self)
         self.match_history_menu = MatchHistoryMenu(self)
+        self.loading_screen_menu = LoadingScreenMenu(self)
         #start on the login screen
         self.curr_menu = self.login_menu
         #game elements that will be ploted to the screen

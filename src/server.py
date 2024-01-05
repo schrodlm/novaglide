@@ -10,11 +10,60 @@ from game_objects.player import Player
 from game_objects.ball import Ball
 
 class Server:
+    """
+    Represents a game server for handling player connections and matches.
+
+    Parameters
+    ----------
+    configuration : Config
+        The configuration object for the server.
+
+    Attributes
+    ----------
+    online_players : set
+        Set of ID values of all online players.
+    queued_solo_players : set
+        Set of ID values of players queued for solo matches.
+    queued_duo_players : set
+        Set of ID values of players queued for duo matches.
+    notify_playing : set
+        Set of player IDs to be notified during gameplay.
+    matches : list
+        List of all ongoing matches.
+
+    Methods
+    -------
+    __init__(configuration)
+        Initializes the Server instance.
+
+    threaded_match()
+        Thread function for handling ongoing matches.
+
+    threaded_client(conn)
+        Thread function for handling individual client connections.
+
+    create_packet(flag, data)
+        Creates a communication packet.
+
+    read_client_message(message)
+        Handles client messages and returns a response packet.
+
+    handle_playing()
+        Handles ongoing matches and removes completed ones.
+
+    stream_match(message)
+        Streams updates during a match to the clients.
+
+    handle_login(d)
+        Handles the login process for clients.
+
+    start_server()
+        Starts the server and waits for incoming connections.
+    """
     online_players = set()       # list of id values of all online players
     queued_solo_players = set()
     queued_duo_players = set()
     notify_playing = set()
-    #waiting for a match queued
     matches = []        #list of all the matches       
     def __init__(self, configuration) -> None:
         #TODO: split seperate config for server and client
@@ -45,39 +94,39 @@ class Server:
         conn.send(str.encode(str("Welcome, please fill the credentials!")))
         reply = ""
         client_id = "unknown"
-        while True:
-            try:
-                #communication with the client
-                #closes when no data is received
-                data = conn.recv(2048)
-                decoded_data = pickle.loads(data)
-                if not data:
-                    conn.send(str.encode("Disconnected"))
-                    break
-                else:
-                    client_id = decoded_data["sender"]
-                    if client_id in self.notify_playing: 
-                        for match in self.matches:
-                            if int(client_id) == int(match.p1_id):
-                                reply = self.create_packet("game_state_1",[1] + match.share_state())
-                            if int(client_id) == int(match.p2_id):
-                                reply = self.create_packet("game_state_1",[2] + match.share_state())
-                            self.notify_playing.remove(client_id)
+        print(self.online_players)
+        try:
+            while True:
+                    #communication with the client
+                    #closes when no data is received
+                    data = conn.recv(2048)
+                    decoded_data = pickle.loads(data)
+                    if not data:
+                        conn.send(str.encode("Disconnected"))
+                        break
                     else:
-                        reply = self.read_client_message(decoded_data)
-                conn.sendall(pickle.dumps(reply))
-            except Exception as e :
-                print(e)
-                break
-        
-        #removing client from subscribers after breaking communication
-        if client_id in self.online_players:
-            self.online_players.remove(client_id)
-        if client_id in self.queued_solo_players:
-            self.queued_solo_players.remove(client_id)
-        if client_id in self.queued_duo_players:
-            self.queued_duo_players.remove(client_id)
-
+                        client_id = decoded_data["sender"]
+                        if client_id in self.notify_playing: 
+                            for match in self.matches:
+                                if int(client_id) == int(match.p1_id):
+                                    reply = self.create_packet("game_state_1",[1] + match.share_state())
+                                if int(client_id) == int(match.p2_id):
+                                    reply = self.create_packet("game_state_1",[2] + match.share_state())
+                                self.notify_playing.remove(client_id)
+                        else:
+                            reply = self.read_client_message(decoded_data)
+                    conn.sendall(pickle.dumps(reply))
+        except Exception as e:
+            print(e)
+        finally:
+            #removing client from subscribers after breaking communication
+            if client_id in self.online_players:
+                self.online_players.remove(client_id)
+            if client_id in self.queued_solo_players:
+                self.queued_solo_players.remove(client_id)
+            if client_id in self.queued_duo_players:
+                self.queued_duo_players.remove(client_id)
+        print(self.online_players)
         print("Connection Closed")
         conn.close()
         
@@ -91,6 +140,7 @@ class Server:
         #handles the logic of the different packet type
         if message["flag"] == "log_in_data":
             allowed = self.handle_login(message["data"])
+
             if allowed in ("known user", "registering new user"):
                 client_id = self.db_query.get_user_id(message["data"][0])
                 self.online_players.add(client_id[0])

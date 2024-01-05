@@ -4,6 +4,7 @@ import datetime
 from abc import ABC, abstractmethod
 import pygame
 import utilities
+import numpy as np
 from menu_elements.input_box import InputBox
 from menu_elements.button import Button
 from menu_elements.table import Table
@@ -258,10 +259,8 @@ class MainMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.response = self.share_status()
-            if self.game.response is not None and self.game.response["flag"] == "game_state_1":
-                self.run_display = False
-                self.game.play_match = True
+            self.share_status()
+
             #tick and fill new background
             self.game.check_inputs()
             self.game.display.fill((0,0,0))
@@ -291,6 +290,7 @@ class MainMenu(Menu):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.play_1v1_button.check_for_input(self.game.mpos):
                     self.run_display = False
+                    self.game.curr_menu = self.game.loading_screen_menu
                     self.game.play_match = True
                     break
                 if self.play_2v2_button.check_for_input(self.game.mpos):
@@ -317,6 +317,70 @@ class MainMenu(Menu):
                     self.run_display = False
                     self.game.curr_menu = self.game.credits_menu
 
+class LoadingScreenMenu(Menu):
+    def __init__(self, game) -> None:
+        super().__init__(game)
+        self.waiting_text = utilities.get_font(40).render(
+        "Waiting for opponents", True, "black")
+        self.waiting_text_rect = self.waiting_text.get_rect(center=(self.mid_x, 120))
+        self.leave_text = utilities.get_font(40).render(
+        "Do not leave the lobby.", True, "black")
+        self.leave_text_rect = self.leave_text.get_rect(center=(self.mid_x, 170))
+        self.loading_points_x_1, self.loading_points_y_1 = LoadingScreenMenu.generate_circle_coordinates(120, ball_start=1)
+        self.loading_points_x_2, self.loading_points_y_2 = LoadingScreenMenu.generate_circle_coordinates(120, ball_start=2)
+        self.loading_points_x_3, self.loading_points_y_3 = LoadingScreenMenu.generate_circle_coordinates(120, ball_start=3)
+        self.loading_points_x_4, self.loading_points_y_4 = LoadingScreenMenu.generate_circle_coordinates(120, ball_start=4)
+        self.x_generator_1 = LoadingScreenMenu.circular_list_generator(self.loading_points_x_1)
+        self.y_generator_1 = LoadingScreenMenu.circular_list_generator(self.loading_points_y_1)
+        self.x_generator_2 = LoadingScreenMenu.circular_list_generator(self.loading_points_x_2)
+        self.y_generator_2 = LoadingScreenMenu.circular_list_generator(self.loading_points_y_2)
+        self.x_generator_3 = LoadingScreenMenu.circular_list_generator(self.loading_points_x_3)
+        self.y_generator_3 = LoadingScreenMenu.circular_list_generator(self.loading_points_y_3)
+        self.x_generator_4 = LoadingScreenMenu.circular_list_generator(self.loading_points_x_4)
+        self.y_generator_4 = LoadingScreenMenu.circular_list_generator(self.loading_points_y_4)
+    def display_menu(self):
+        self.run_display = True
+        while self.run_display:
+            self.game.response = self.share_status()
+            if self.game.response is not None and self.game.response["flag"] == "game_state_1":
+                self.run_display = False
+                self.game.play_match = True
+            self.game.display.fill((0,0,0))
+            self.game.display.blit(utilities.get_image("background_main"), (0, 0))  
+            self.game.display.blit(self.waiting_text, self.waiting_text_rect)
+            self.game.display.blit(self.leave_text, self.leave_text_rect)
+            pygame.draw.circle(self.game.display, (255, 255, 255), (next(self.x_generator_1), next(self.y_generator_1)), 7)
+            pygame.draw.circle(self.game.display, (255, 255, 255), (next(self.x_generator_2), next(self.y_generator_2)), 7)
+            pygame.draw.circle(self.game.display, (255, 255, 255), (next(self.x_generator_3), next(self.y_generator_3)), 7)
+            pygame.draw.circle(self.game.display, (255, 255, 255), (next(self.x_generator_4), next(self.y_generator_4)), 7)
+            self.check_events()
+            self.blit_screen()
+
+    def check_events(self):
+        for event in pygame.event.get():
+            # closing the game with mouse
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+    @staticmethod
+    def generate_circle_coordinates(radius, num_points=30, ball_start = 1):
+        starts = {1:np.linspace(0, 2*np.pi, num_points),
+                  2:np.linspace(0.5*np.pi, 2.5*np.pi, num_points),
+                  3:np.linspace(np.pi, 3*np.pi, num_points),
+                  4:np.linspace(1.5*np.pi, 3.5*np.pi, num_points)}
+            
+        theta_repeated = np.repeat(starts.get(ball_start), 4)
+        x = 640 + radius * np.cos(theta_repeated)
+        y = 360 + radius * np.sin(theta_repeated)
+        return (list(x), list(y))
+
+    @staticmethod
+    def circular_list_generator(my_list):
+        index = 0
+        while True:
+            yield my_list[index]
+            index = (index + 1) % len(my_list)    
 
 class SettingsMenu(Menu):
     def __init__(self,game):
