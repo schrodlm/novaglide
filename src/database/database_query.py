@@ -32,7 +32,6 @@ UNION
 );
 """,
                                "get_challengers":"SELECT Name, Winrate, Elo FROM user_data ORDER BY Elo DESC LIMIT 100"}
-        self.data = None
         
     def get_user_id(self, name):
         query = "SELECT id FROM user_data WHERE Name =%s"
@@ -43,7 +42,9 @@ UNION
             self.create_new_connection()
             self.cursor.execute(query,
                                 (name,))
-        return self.cursor.fetchone()
+        result = self.cursor.fetchone()
+        self.close_connection_to_db()
+        return result
     
     def get_user_name(self, index):
         query = "SELECT Name FROM user_data WHERE id =%s"
@@ -54,7 +55,9 @@ UNION
             self.create_new_connection()
             self.cursor.execute(query,
                                 (index,))
-        return self.cursor.fetchone()
+        result = self.cursor.fetchone()
+        self.close_connection_to_db()
+        return result
 
     def get_user_elo(self, name):
         query = "SELECT Elo FROM user_data WHERE Name =%s"
@@ -65,7 +68,10 @@ UNION
             self.create_new_connection()
             self.cursor.execute(query,
                                 (name,))
-        return self.cursor.fetchone()
+        result = self.cursor.fetchone()
+        self.close_connection_to_db()
+        return result
+
     def get_user_winrate(self, name):
         query = "SELECT Winrate FROM user_data WHERE Name =%s"
         try:
@@ -75,7 +81,21 @@ UNION
             self.create_new_connection()
             self.cursor.execute(query,
                                 (name,))
-        return self.cursor.fetchone()
+        result = self.cursor.fetchone()
+        self.close_connection_to_db()
+        return result
+
+    def update_user_elo(self, idx, new_elo):
+        query = "UPDATE user_data SET elo = %s WHERE id = %s"
+        try:
+            self.cursor.execute(query,
+                                (new_elo, idx, ))
+        except psycopg2.InterfaceError:
+            self.create_new_connection()
+            self.cursor.execute(query,
+                                (new_elo, idx,))    
+        self.connection.commit()
+        self.close_connection_to_db()
 
     def get_history(self, name, solo = True):
         if solo:
@@ -96,7 +116,9 @@ UNION
                 self.create_new_connection()
                 self.cursor.execute(query,
                                     (name, name, name, name))
-        return self.cursor.fetchall()
+        result = self.cursor.fetchall()
+        self.close_connection_to_db()
+        return result
     
     def query_data(self, query = "user_data"):
         """_summary_
@@ -109,9 +131,10 @@ UNION
         except psycopg2.InterfaceError:
             self.create_new_connection()
             self.cursor.execute(self.sql_statements.get(query))
-        self.data = self.cursor.fetchall()
+        result = self.cursor.fetchall()
         self.close_connection_to_db()
-        return self.data
+        return result
+
     def close_connection_to_db(self):
         """_summary_
         """
