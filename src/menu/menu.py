@@ -546,8 +546,6 @@ class SettingsMenu(Menu):
                     self.run_display = False
                     self.game.curr_menu = self.game.main_menu
     def save_settings(self):
-        #TODO:open settings only as seperate window so it can be changed ingame
-        #+ notify game that settings changed?
         new_settings = {}
         new_settings["Music"] = self.music
         new_settings["Volume"] = self.volume

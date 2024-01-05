@@ -15,4 +15,4 @@ stages:
 pylint:
   stage: Static Analysis
   script:
-  - pylint --disable=R,C src/*.py
+  - pylint --disable=C0301,C0103 src/*.py
