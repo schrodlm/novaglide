@@ -1,12 +1,14 @@
 import sys
 import json
+import datetime
+from abc import ABC, abstractmethod
 import pygame
 import utilities
-from abc import ABC, abstractmethod
-from input_box import InputBox
-from button import Button
-from table import Table
-from player import Player
+import numpy as np
+from menu_elements.input_box import InputBox
+from menu_elements.button import Button
+from menu_elements.table import Table
+from game_objects.player import Player
 
 class Menu(ABC):
     """
@@ -52,7 +54,14 @@ class Menu(ABC):
         pygame.display.update()
         self.game.reset_keys()
         return self
-
+    def share_status(self):
+        response = None
+        if self.game.online:
+            response = self.game.net.send({"time":datetime.datetime.now(),
+"sender":self.game.client_id, 
+"flag":self.game.status,
+"data":["no_data"]})
+        return response
     #ensuring that all menus implement these methods,
     #to make the API consistent
     @abstractmethod
@@ -90,8 +99,6 @@ class LogInMenu(Menu):
         Flag indicating if login error is present.
     allow : str
         Permission level after login attempt.
-    ignore_check_event : bool
-        Flag to ignore check_event during login.
 
     Methods
     -------
@@ -120,7 +127,7 @@ class LogInMenu(Menu):
         self.input_boxes = [self.username_input, self.password_input]
         self.error_present = False
         self.allow = None
-        self.ignore_check_event = False
+   
 
     def display_menu(self) -> "LogInMenu":
         """
@@ -132,6 +139,7 @@ class LogInMenu(Menu):
         #TODO: logout from the server
         self.run_display = True
         while self.run_display:
+            self.share_status()
             self.game.check_inputs()
             self.game.display.fill((0,0,0))
             # draw background
@@ -144,11 +152,12 @@ class LogInMenu(Menu):
                                 150,
                                 self.game.display,
                                 self.game.config["colours"]["black"])
-            if self.allow is not None and self.error_present:
+            if self.error_present:
                 self.draw_error(self.allow)
             self.log_in_button.change_color(self.game.mpos).update(self.game.
                                                             display)
             self.check_events().blit_screen()
+            
         return self
 
     def check_events(self) -> "LogInMenu":
@@ -162,18 +171,26 @@ class LogInMenu(Menu):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.log_in_button.check_for_input(self.game.mpos):
-                    allowed = self.game.query.allow_user_credentials(self.
-                                    username_input.text,
-                                    self.password_input.text)
-                    if allowed is not None:
-                        self.allow = allowed
+                    if not self.game.online:
+                        self.game.net.connect()
+                        self.game.online = True
+                        self.game.status = "waiting_for_approval"
+                    if self.game.online:
+                        self.game.status, self.allow, self.game.client_id = self.game.unpack_login_data(self.game.net.send(self.
+                            game.parse_data(
+                            "log_in_data",
+                            [self.username_input.text, self.password_input.text])))
+
                     if self.allow in ("known user", "registering new user"):
                         self.error_present = False
                         self.allow = None
                         self.run_display = False
+                        self.game.status = "online"
                         self.game.curr_menu = self.game.main_menu
-                        self.game.user_credentials["name"] = self.username_input.text
-                        self.game.user_credentials["password"] = self.password_input.text
+                        self.game.user_credentials["name"] = (self.
+                                                    username_input.text)
+                        self.game.user_credentials["password"] = (self.
+                                                    password_input.text)
                         break
                     else:
                         self.error_present = True
@@ -242,6 +259,8 @@ class MainMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
+            self.share_status()
+
             #tick and fill new background
             self.game.check_inputs()
             self.game.display.fill((0,0,0))
@@ -271,10 +290,9 @@ class MainMenu(Menu):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.play_1v1_button.check_for_input(self.game.mpos):
                     self.run_display = False
+                    self.game.curr_menu = self.game.loading_screen_menu
                     self.game.play_match = True
-                    print("1v1 selected")
-
-
+                    break
                 if self.play_2v2_button.check_for_input(self.game.mpos):
                     #TODO: implement multiplayer
                     print("2v2 selected")
@@ -299,6 +317,70 @@ class MainMenu(Menu):
                     self.run_display = False
                     self.game.curr_menu = self.game.credits_menu
 
+class LoadingScreenMenu(Menu):
+    def __init__(self, game) -> None:
+        super().__init__(game)
+        self.waiting_text = utilities.get_font(40).render(
+        "Waiting for opponents", True, "black")
+        self.waiting_text_rect = self.waiting_text.get_rect(center=(self.mid_x, 120))
+        self.leave_text = utilities.get_font(40).render(
+        "Do not leave the lobby.", True, "black")
+        self.leave_text_rect = self.leave_text.get_rect(center=(self.mid_x, 170))
+        self.loading_points_x_1, self.loading_points_y_1 = LoadingScreenMenu.generate_circle_coordinates(120, ball_start=1)
+        self.loading_points_x_2, self.loading_points_y_2 = LoadingScreenMenu.generate_circle_coordinates(120, ball_start=2)
+        self.loading_points_x_3, self.loading_points_y_3 = LoadingScreenMenu.generate_circle_coordinates(120, ball_start=3)
+        self.loading_points_x_4, self.loading_points_y_4 = LoadingScreenMenu.generate_circle_coordinates(120, ball_start=4)
+        self.x_generator_1 = LoadingScreenMenu.circular_list_generator(self.loading_points_x_1)
+        self.y_generator_1 = LoadingScreenMenu.circular_list_generator(self.loading_points_y_1)
+        self.x_generator_2 = LoadingScreenMenu.circular_list_generator(self.loading_points_x_2)
+        self.y_generator_2 = LoadingScreenMenu.circular_list_generator(self.loading_points_y_2)
+        self.x_generator_3 = LoadingScreenMenu.circular_list_generator(self.loading_points_x_3)
+        self.y_generator_3 = LoadingScreenMenu.circular_list_generator(self.loading_points_y_3)
+        self.x_generator_4 = LoadingScreenMenu.circular_list_generator(self.loading_points_x_4)
+        self.y_generator_4 = LoadingScreenMenu.circular_list_generator(self.loading_points_y_4)
+    def display_menu(self):
+        self.run_display = True
+        while self.run_display:
+            self.game.response = self.share_status()
+            if self.game.response is not None and self.game.response["flag"] == "game_state_1":
+                self.run_display = False
+                self.game.play_match = True
+            self.game.display.fill((0,0,0))
+            self.game.display.blit(utilities.get_image("background_main"), (0, 0))  
+            self.game.display.blit(self.waiting_text, self.waiting_text_rect)
+            self.game.display.blit(self.leave_text, self.leave_text_rect)
+            pygame.draw.circle(self.game.display, (255, 255, 255), (next(self.x_generator_1), next(self.y_generator_1)), 7)
+            pygame.draw.circle(self.game.display, (255, 255, 255), (next(self.x_generator_2), next(self.y_generator_2)), 7)
+            pygame.draw.circle(self.game.display, (255, 255, 255), (next(self.x_generator_3), next(self.y_generator_3)), 7)
+            pygame.draw.circle(self.game.display, (255, 255, 255), (next(self.x_generator_4), next(self.y_generator_4)), 7)
+            self.check_events()
+            self.blit_screen()
+
+    def check_events(self):
+        for event in pygame.event.get():
+            # closing the game with mouse
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+    @staticmethod
+    def generate_circle_coordinates(radius, num_points=30, ball_start = 1):
+        starts = {1:np.linspace(0, 2*np.pi, num_points),
+                  2:np.linspace(0.5*np.pi, 2.5*np.pi, num_points),
+                  3:np.linspace(np.pi, 3*np.pi, num_points),
+                  4:np.linspace(1.5*np.pi, 3.5*np.pi, num_points)}
+            
+        theta_repeated = np.repeat(starts.get(ball_start), 4)
+        x = 640 + radius * np.cos(theta_repeated)
+        y = 360 + radius * np.sin(theta_repeated)
+        return (list(x), list(y))
+
+    @staticmethod
+    def circular_list_generator(my_list):
+        index = 0
+        while True:
+            yield my_list[index]
+            index = (index + 1) % len(my_list)    
 
 class SettingsMenu(Menu):
     def __init__(self,game):
@@ -375,10 +457,10 @@ class SettingsMenu(Menu):
         self.buttons.add(self.map_button_right_arrow)
         self.buttons.add(self.exit_button)
 
-
     def display_menu(self):
         self.run_display = True
         while self.run_display:
+            self.share_status()
             self.game.check_inputs()
             self.check_events()
             self.game.display.fill((0,0,0))
@@ -417,7 +499,6 @@ class SettingsMenu(Menu):
                 button.change_color(self.game.mpos)
             self.buttons.update(self.game.display)
             self.blit_screen()
-
 
     def check_events(self):
         for event in pygame.event.get():
@@ -483,13 +564,15 @@ class RankedMenu(Menu):
         self.back_button_rm = Button(image=utilities.get_image("back_arrow"), pos=(70, 50),
                             text_input="", font=utilities.get_font(40),
                             base_color=(133, 88, 255), hovering_color=self.game.config["colours"]["aqua"])
-        self.elo, self.division = self.get_my_elo()
+        self.elo, self.division = "unknown", "unknown"
         self.player_preview = Player("",170,250, self.game.config,70)
-        self.winrate = self.get_winrate()
+        self.winrate = "unknown"
+        self.preview_page = 1
+        self.next_preview_page = 2
         self.challenger_table = Table(self.game.config,header="CHALLENGERS",cols_sizes=[50,350,100,120])
         #challenger table buttons
         #will change the preview (1-10,11-20,... up to 100)
-        self.challenger_table_button_left_arrow = Button(image=utilities.get_image("left_arrow"),
+        self.challenger_table_left_arrow = Button(image=utilities.get_image("left_arrow"),
                                     pos=(int((((self.challenger_table.max_x -
                                     self.challenger_table.top_left_coords[0]) // 2)
                                     + self.challenger_table.top_left_coords[0]) - 150),
@@ -504,13 +587,13 @@ class RankedMenu(Menu):
                                     text_input="", font=utilities.get_font(40),
                                     base_color=self.game.config["colours"]["black"], hovering_color=self.game.config["design"]["hovering_colour"])
         self.elements.add(self.back_button_rm)
-        self.elements.add(self.challenger_table_button_left_arrow)
+        self.elements.add(self.challenger_table_left_arrow)
         self.elements.add(self.challenger_table_right_arrow)
         self.elements.add(self.challenger_table)
     def draw_ranked_names(self,names):
         xs = [120,280,455,660,900,1113]
         ys = [465,460,420,421,420,415]
-        intervals = ["<1000","<2000","<4000","<6000",">= 8000","TOP 100"]
+        intervals = ["<1000","<2000","<4000","<6000",">= 6000","TOP 100"]
         for name, interval, x, y in zip(names, intervals, xs, ys):
             utilities.draw_text(name, 25, x, y,
                                 self.game.display,
@@ -519,8 +602,12 @@ class RankedMenu(Menu):
                                 self.game.display,
                                 color=self.game.config["colours"]["aqua"])
     def display_menu(self):
+        self.elo, self.division = self.get_my_elo()
+        self.winrate = self.get_winrate()
+        challengers_data = self.get_challengers()
         self.run_display = True
         while self.run_display:
+            self.share_status()
             self.game.check_inputs()
             self.check_events()
             # draw background
@@ -540,7 +627,7 @@ class RankedMenu(Menu):
             utilities.draw_text(self.division, 35, 470, 270,
                             self.game.display,
                             color=self.game.config["colours"]["aqua"])
-            utilities.draw_text(self.winrate, 35, 470, 340,
+            utilities.draw_text(str(self.winrate) + "%", 35, 470, 340,
                             self.game.display,
                             color=self.game.config["colours"]["aqua"])
             self.game.display.blit(self.player_preview.image, self.player_preview.rect)
@@ -553,8 +640,8 @@ class RankedMenu(Menu):
                         (self.player_preview.x - border_coordinates[self.division] + 3,
                          self.player_preview.y-border_coordinates[self.division]))
 
-            #TODO: to be changed to real data from database, just for testing now
-            self.challenger_table.insert_data(data = self.get_challengers(), display=self.game.display)
+
+            self.challenger_table.insert_data(data = challengers_data[((self.preview_page - 1)*40):((self.preview_page - 1)*40) + 40], display=self.game.display)
             self.challenger_table.create_positions = False
             self.blit_screen()
 
@@ -569,32 +656,45 @@ class RankedMenu(Menu):
                 if self.back_button_rm.check_for_input(self.game.mpos):
                     self.run_display = False
                     self.game.curr_menu = self.game.main_menu
-    #TODO: all these methods will send request to the server and plot the data
-    #that the server returns (now they are just blueprints)
+                if self.challenger_table_right_arrow.check_for_input(self.game.mpos):
+                    self.next_preview_page = self.preview_page + 1
+                    if self.next_preview_page <= 10 and self.next_preview_page >= 1:
+                        self.preview_page = self.next_preview_page
+                if self.challenger_table_left_arrow.check_for_input(self.game.mpos):
+                    self.next_preview_page = self.preview_page - 1
+                    if self.next_preview_page <= 10 and self.next_preview_page >= 1:
+                        self.preview_page = self.next_preview_page
+                    
     def get_my_elo(self):
-        #TODO: database query for my current elo
-        #will return pair (elo,division)
-        #TODO: Temporary, to be deleted
-        elo = 13000
-        division = "CHALLENGER"
+        elo, elo_of_top_100 = self.game.unpack_elo_data(self.game.net.send(self.game.parse_data("get_elo",[
+            self.game.user_credentials["name"]
+        ])))
+        elo = int(elo)
+        elo_of_top_100 = int(elo_of_top_100)
+        division = "WOODEN"
+        if elo >= 1000:
+            division = "IRON"
+        if elo >= 2000:
+            division = "BRONZE"
+        if elo >= 4000:
+            division = "SILVER"
+        if elo >= 6000:
+            division = "GOLD"
+        if elo >= elo_of_top_100:
+            division = "CHALLENGER"
         return (elo,division)
     def get_challengers(self):
         #TODO: query top 100 players ordered by elo
-        challengers = (["1","Brambora","50%","3570","2","Brambora","50%","3570",
-                        "3","Brambora","50%","3570",
-                        "4","Brambora","50%","3570",
-                        "5","Brambora","50%","3570",
-                        "6","Brambora","50%","3570",
-                        "7","Brambora","50%","3570",
-                        "8","Brambora","50%","3570",
-                        "9","Brambora","50%","3570",
-                        "10","Brambora","50%","3570"])
-        return challengers
+        challenger_data = self.game.unpack_challenger_data(self.game.net.send(self.game.parse_data("get_challengers",["no_data"])))
+        final_data = []
+        for row in zip(range(1,101),challenger_data):
+            final_data += [str(row[0]),str(row[1][0]),str(row[1][1]) + "%",str(row[1][2])]
+        if len(challenger_data) < 100:
+            for rest in range(len(challenger_data) +1,101):
+                final_data += [str(rest),"NA","NA","NA"]
+        return final_data
     def get_winrate(self):
-        #TODO: Calculating winrate (wins/gp)
-        #TODO: Temporary, to be deleted
-        winrate = "80%"
-        return winrate
+        return self.game.unpack_winrate_data(self.game.net.send(self.game.parse_data("get_winrate",[self.game.user_credentials["name"]])))
 
 
 
@@ -614,7 +714,9 @@ class MatchHistoryMenu(Menu):
         self.draw_solo = True
     def display_menu(self):
         self.run_display = True
+        data_solo , data_duo = self.get_match_history()
         while self.run_display:
+            self.share_status()
             self.game.check_inputs()
             self.check_events()
             self.game.display.fill((0,0,0))
@@ -628,30 +730,27 @@ class MatchHistoryMenu(Menu):
                 self.match_history_table.header = "MATCH HISTORY DUO"
             self.elements.update(self.game.display)
             if self.draw_solo:
-                #TODO: to be connected to real database data returned by the server
-                self.match_history_table.insert_data(data = ["autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",
-                                                             "autobus","1220","3","5","1220","autobus",], display=self.game.display)
+                self.match_history_table.insert_data(data = data_solo, display=self.game.display)
             else:
-                self.match_history_table.insert_data(data = ["auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",
-                                                             "auto-brambor","1220-800","8","6","300-1220","auto-vcela",], display=self.game.display)
+                self.match_history_table.insert_data(data = data_duo, display=self.game.display)
             self.match_history_table.create_positions = False
             self.blit_screen()
+
+    def get_match_history(self):
+        data_solo , data_duo = self.game.unpack_match_history_data(self.game.net.send(self.game.parse_data("get_match_history",[self.game.user_credentials["name"]])))
+        final_data_solo = []
+        final_data_duo = []
+        for row in data_solo:
+            final_data_solo += [str(row[1]), str(row[3]), str(row[5]), str(row[6]), str(row[4]), str(row[2])]
+        if len(data_solo)< 10:
+            for _ in range(len(data_solo) +1,11):
+                final_data_solo += ["NA","NA","NA","NA","NA","NA"]
+        for row in data_duo:
+            final_data_duo += [str(row[1]) + "-" + str(row[2]), str(row[5]) + "-" + str(row[6]), str(row[9]), str(row[10]), str(row[7]) + "-" + str(row[8]), str(row[3]) + "-" + str(row[4])]
+        if len(data_duo) < 10:
+            for _ in range(len(data_duo) +1,11):
+                final_data_duo += ["NA","NA","NA","NA","NA","NA"]
+        return (final_data_solo, final_data_duo)
 
     def check_events(self):
         for event in pygame.event.get():
@@ -675,7 +774,8 @@ class CreditsMenu(Menu):
     def display_menu(self):
         self.run_display = True
         while self.run_display:
-            self.game.check_events()
+            self.share_status()
+            self.check_events()
             if self.game.START_KEY or self.game.BACK_KEY:
                 self.game.curr_menu = self.game.main_menu
                 self.run_display = False

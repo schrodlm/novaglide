@@ -83,8 +83,8 @@ class Button(pygame.sprite.Sprite):
                 pos: Tuple[int, int],
                 text_input: str,
                 font: pygame.font.Font,
-                base_color: str|Tuple[int, int, int],
-                hovering_color: str|Tuple[int, int, int]) -> None:
+                base_color: Union[str,Tuple[int, int, int]],
+                hovering_color: Union[str,Tuple[int, int, int]]) -> None:
         #sprite init
         super().__init__()
         #test arguments

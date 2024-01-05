@@ -1,20 +1,18 @@
 version: '3.1'
 services:
-  db:
+  database:
     image: postgres
     restart: always
     env_file:
       - .env
     volumes:
-      - ./data:/docker-entrypoint-initdb.d
+      - ./pgdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
   adminer:
     image: adminer
     restart: always
     depends_on:
-      - db
+      - database
     ports:
       - 8080:8080
-
-
