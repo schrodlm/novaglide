@@ -175,3 +175,5 @@ class Match1v1(Match):
             self.tiebreak = True
             if self.end_game_in_tiebreak:
                 return self.end_match()
+        elif self.elapsed_time >= self.match_duration and self.score[0] != self.score[1]:
+            return self.end_match()
