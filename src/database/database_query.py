@@ -15,7 +15,8 @@ class DBQuery:
         #Opening cursor to the database
         self.cursor = self.connection.cursor()
         #Basic commands mapping to increase readability
-        query = """
+        self.sql_statements = {"user_data":"SELECT * FROM  user_data",
+                               "top_elo":"""
 (
   SELECT Elo
   FROM user_data
@@ -29,9 +30,7 @@ UNION
   ORDER BY Elo ASC
   LIMIT 1
 );
-"""
-        self.sql_statements = {"user_data":"SELECT * FROM  user_data",
-                               "top_elo":query,
+""",
                                "get_challengers":"SELECT Name, Winrate, Elo FROM user_data ORDER BY Elo DESC LIMIT 100"}
         self.data = None
         

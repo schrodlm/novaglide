@@ -12,10 +12,10 @@ class Match():
         self.max_height, self.max_width = self.config["resolution"]["height"], self.config["resolution"]["width"]
         # Define borders
         self.display = pygame.Surface((self.max_width,self.max_height))
-        self.match_duration = 5*60
+        self.match_duration = 30
         self.score = (0,0)
         self.tiebreak = False
-
+        self.end_game_in_tiebreak = False
         self.entities = pygame.sprite.Group()
         self.solids = pygame.sprite.Group()
 
@@ -66,6 +66,9 @@ class Match1v1(Match):
         # Update the ball's rect to reflect the new position
         self.ball.setRect()
 
+    def end_tiebreak(self):
+        if self.tiebreak:
+            self.end_game_in_tiebreak = True
 
     def update_game_state(self):
     # Check for ball collision with goals
@@ -75,13 +78,14 @@ class Match1v1(Match):
             self.score = (self.score[0], self.score[1] + 1)
             self.match_stats.add_goal(self.p1)
             self.reset_ball()
+            self.end_tiebreak()
 
         if self.goal2.colliderect(self.ball.rect):
             # Ball has entered goal 2, increment score for player 1
             self.score = (self.score[0] + 1, self.score[1])
             self.match_stats.add_goal(self.p2)
             self.reset_ball()
-
+            self.end_tiebreak()
         
         if pygame.sprite.collide_circle(self.p1,self.ball) or pygame.sprite.collide_circle(self.p2,self.ball) :
             # 1. Calculate the collision normal
@@ -139,6 +143,7 @@ class Match1v1(Match):
     def update_player_2(self, inputs):
         self.p2.update(self.dt, None, inputs[0], self.elapsed_time, inputs[1])
     def end_match(self):
+        #TODO: has  to return all the stats to the
         # Determine the winner based on the score
         if self.score[0] > self.score[1]:
             self.match_stats.set_winner(self.p2)
@@ -159,12 +164,14 @@ class Match1v1(Match):
             self.p1.hook_coords.y,
             self.p2.hook_coords.x, self.p2.hook_coords.y, self.dash_time_1,
             self.hook_time_1, self.dash_time_2 ,self.hook_time_2,
-            self.ball.x, self.ball.y, self.p1.hooking,self.p2.hooking]
+            self.ball.x, self.ball.y, self.p1.hooking,self.p2.hooking, self.tiebreak]
 
     def match_loop(self):
         # main game loop
         self.update_game_state()
         # Update the timer
         self.elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000  # Convert milliseconds to seconds
-        if self.elapsed_time >= self.match_duration:
-            return self.end_match()
+        if self.elapsed_time >= self.match_duration and self.score[0] == self.score[1]:
+            self.tiebreak = True
+            if self.end_game_in_tiebreak:
+                return self.end_match()

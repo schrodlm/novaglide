@@ -86,7 +86,6 @@ class Player(pygame.sprite.Sprite):
             self.dash(dt)
         self.check_cooldowns(time)
 
-    #TODO: border width to config
     def move(self, dx, dy):
         self.x += dx
         self.y += dy

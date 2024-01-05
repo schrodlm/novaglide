@@ -132,7 +132,10 @@ class Game():
         
         #display timer
         remaining_time = match_data[1]
-        timer_surface = self.font.render(f"Time Left: {int(remaining_time)}s", True, (255, 255, 255))
+        if not match_data[22]:
+            timer_surface = self.font.render(f"Time Left: {int(remaining_time)}s", True, (255, 255, 255))
+        else:
+            timer_surface = self.font.render(f"Tiebreak", True, (255, 255, 255))
         self.display.blit(timer_surface, (10, 10))  
         
         #if the player is hooking draw the hook
