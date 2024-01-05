@@ -138,10 +138,10 @@ class Match1v1(Match):
             self.hook_time_2 = 0
         
     def update_player_1(self, inputs):
-        self.p1.update(self.dt, None, inputs[0], self.elapsed_time, inputs[1])
+        self.p1.update(self.dt, None, inputs[0], self.elapsed_time, inputs[1], inputs[2])
         
     def update_player_2(self, inputs):
-        self.p2.update(self.dt, None, inputs[0], self.elapsed_time, inputs[1])
+        self.p2.update(self.dt, None, inputs[0], self.elapsed_time, inputs[1], inputs[2])
     def end_match(self):
         #TODO: has  to return all the stats to the
         # Determine the winner based on the score
@@ -152,7 +152,7 @@ class Match1v1(Match):
 
         # Stop the game loop
         self.playing = False
-        return True
+        return False
 
     def get_match_stats(self):
         return self.match_stats

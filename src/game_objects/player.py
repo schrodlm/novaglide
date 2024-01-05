@@ -1,5 +1,6 @@
 import pygame
 from pygame import Vector2
+import utilities
 # --------------------------PLAYER-----------------------------------
 
 class Player(pygame.sprite.Sprite):
@@ -7,7 +8,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, name, x, y, config,radius = 40, color = "red", server = False):
         
         pygame.sprite.Sprite.__init__(self)
-        
+        self.game_settings = utilities.get_settings()
         self.config = config
         # width and height
         self.radius = radius
@@ -43,18 +44,28 @@ class Player(pygame.sprite.Sprite):
                 (self.radius, self.radius), self.radius)
 
         self.name = name
-
-    def update(self, dt, display, mouse_pos, time, keys):
+    def update(self, dt, display, mouse_pos, time, keys, controls):
         #display can be None on the server side so that
         #TODO: fix diagonal movement, has to be divided by sqrt2
-        if keys[pygame.K_w] and not self.pull:
-            self.move(0, -500*dt)
-        if keys[pygame.K_s] and not self.pull:
-            self.move(0, 500*dt)
-        if keys[pygame.K_a] and not self.pull:
-            self.move(-500*dt, 0)
-        if keys[pygame.K_d] and not self.pull:
-            self.move(500*dt, 0)
+        if controls == "wsad":
+            if keys[pygame.K_w] and not self.pull:
+                self.move(0, -500*dt)
+            if keys[pygame.K_s] and not self.pull:
+                self.move(0, 500*dt)
+            if keys[pygame.K_a] and not self.pull:
+                self.move(-500*dt, 0)
+            if keys[pygame.K_d] and not self.pull:
+                self.move(500*dt, 0)
+        if controls == "arrows":
+            if keys[pygame.K_UP] and not self.pull:
+                self.move(0, -500*dt)
+            if keys[pygame.K_DOWN] and not self.pull:
+                self.move(0, 500*dt)
+            if keys[pygame.K_LEFT] and not self.pull:
+                self.move(-500*dt, 0)
+            if keys[pygame.K_RIGHT] and not self.pull:
+                self.move(500*dt, 0)
+
         if (keys[pygame.K_SPACE] and self.hooking is False 
             and not self.pull and not self.hook_on_cooldown):
             #runs in the first tick after presing backspace

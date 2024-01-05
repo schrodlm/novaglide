@@ -83,39 +83,45 @@ class Server:
         self.s.listen(10)
         print("Waiting for a connection")
         
-    def threaded_match(self):
-        while len(self.matches) > 0:
-            try:
-                self.handle_playing()
-            except Exception as e:
-                print(e)
+    def threaded_match(self, match):
+        while True:
+            end = match.match_loop()
+            if end:
+                #TODO: send notification to the clients
+                try:
+                    self.matches.remove(match)
+                except ValueError:
+                    print("match already removed")
+                print("Curent matches: ", self.matches)
+                break
     def threaded_client(self, conn):
         #send client his id
         conn.send(str.encode(str("Welcome, please fill the credentials!")))
+        #TODO: maybe change reply to soemthing that can be pickled
         reply = ""
         client_id = "unknown"
-        print(self.online_players)
         try:
             while True:
-                    #communication with the client
-                    #closes when no data is received
-                    data = conn.recv(2048)
-                    decoded_data = pickle.loads(data)
-                    if not data:
-                        conn.send(str.encode("Disconnected"))
-                        break
-                    else:
-                        client_id = decoded_data["sender"]
-                        if client_id in self.notify_playing: 
-                            for match in self.matches:
-                                if int(client_id) == int(match.p1_id):
-                                    reply = self.create_packet("game_state_1",[1] + match.share_state())
-                                if int(client_id) == int(match.p2_id):
-                                    reply = self.create_packet("game_state_1",[2] + match.share_state())
+                #communication with the client
+                #closes when no data is received
+                data = conn.recv(2048)
+                decoded_data = pickle.loads(data)
+                if not data:
+                    conn.send(str.encode("Disconnected"))
+                    break
+                else:
+                    client_id = decoded_data["sender"]
+                    if client_id in self.notify_playing: 
+                        for match in self.matches:
+                            if int(client_id) == int(match.p1_id):
+                                reply = self.create_packet("game_state_1",[1] + match.share_state())
                                 self.notify_playing.remove(client_id)
-                        else:
-                            reply = self.read_client_message(decoded_data)
-                    conn.sendall(pickle.dumps(reply))
+                            if int(client_id) == int(match.p2_id):
+                                reply = self.create_packet("game_state_1",[2] + match.share_state())
+                                self.notify_playing.remove(client_id)
+                    else:
+                        reply = self.read_client_message(decoded_data)
+                conn.sendall(pickle.dumps(reply))
         except Exception as e:
             print(e)
         finally:
@@ -126,7 +132,6 @@ class Server:
                 self.queued_solo_players.remove(client_id)
             if client_id in self.queued_duo_players:
                 self.queued_duo_players.remove(client_id)
-        print(self.online_players)
         print("Connection Closed")
         conn.close()
         
@@ -178,7 +183,7 @@ class Server:
                 ball = Ball(self.config,server=True)
                 new_match = Match1v1(self.config, player_1, player_2, ball, p_1_id, p_2_id)
                 self.matches.append(new_match)
-                start_new_thread(self.threaded_match, ())
+                start_new_thread(self.threaded_match, (new_match, ))
                 self.notify_playing.add(int(p_1_id))
                 self.notify_playing.add(int(p_2_id))
                 return self.create_packet("Waiting_for_opponent",["no_data"])
@@ -187,16 +192,7 @@ class Server:
                 return self.create_packet("Waiting_for_opponent",["no_data"])
         if message["flag"] == "ingame":
             return self.stream_match(message)
-    def handle_playing(self):
-        for match in self.matches:
-            end = match.match_loop()
-            if end:
-                #TODO: send notification to the clients
-                try:
-                    self.matches.remove(match)
-                except ValueError:
-                    print("match already removed")
-                print("Curent matches: ", self.matches)
+
     def stream_match(self, message):
         for match in self.matches:
             if int(message["sender"]) == match.p1_id:

@@ -173,7 +173,7 @@ UNION
             return "Incorrect password for this username"
         #Creating new user in the database and inserting him into the database
         self.cursor.execute("INSERT INTO user_data (Name, Password, Elo, Winrate, Skin) VALUES(%s, %s, %s, %s, %s)",
-                    (username, password,1000,1000,"Skin1"))
+                    (username, password,1000,0,"Skin1"))
         self.connection.commit()
         self.close_connection_to_db()
         return "registering new user"
