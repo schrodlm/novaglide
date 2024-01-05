@@ -3,8 +3,11 @@ services:
   database:
     image: postgres
     restart: always
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=server
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=novaglide_db
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     ports:
