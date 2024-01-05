@@ -31,3 +31,8 @@ class InvalidColorString(Exception):
                 message="Color is not valid string representation in pygame"):
         self.message = message
         super().__init__(self.message)
+
+class InvalidClientException(Exception):
+    def __init__(self, message="Incorrect client"):
+        self.message = message
+        super().__init__(self.message)

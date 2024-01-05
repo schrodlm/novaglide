@@ -8,6 +8,7 @@ from configuration_mod import Config
 from match.match import Match1v1
 from game_objects.player import Player
 from game_objects.ball import Ball
+from custom_exceptions import InvalidClientException
 
 class Server:
     """
@@ -143,6 +144,8 @@ class Server:
 
             if allowed in ("known user", "registering new user"):
                 client_id = self.db_query.get_user_id(message["data"][0])
+                if client_id[0] in self.online_players:
+                    raise InvalidClientException("This player is already logged in!")
                 self.online_players.add(client_id[0])
                 return self.create_packet("change_of_status", ["online",
                 allowed, client_id[0]])
