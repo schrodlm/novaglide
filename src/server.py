@@ -159,7 +159,7 @@ class Server:
 
         if message["flag"] == "get_elo":
             return self.create_packet("client_elo",[self.db_query.get_user_elo(message["data"][0])[0],
-                                                    self.db_query.query_data("top_elo")[0][0]])
+                                                    self.db_query.query_data("top_elo")])
 
         if message["flag"] == "get_challengers":
             return self.create_packet("challengers",

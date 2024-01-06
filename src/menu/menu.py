@@ -563,7 +563,7 @@ class RankedMenu(Menu):
                             text_input="", font=utilities.get_font(40),
                             base_color=(133, 88, 255), hovering_color=self.game.config["colours"]["aqua"])
         self.elo, self.division = "unknown", "unknown"
-        self.player_preview = Player("",170,250, self.game.config,70)
+        self.player_preview = Player("",170,250, self.game.config,0, 70)
         self.winrate = "unknown"
         self.preview_page = 1
         self.next_preview_page = 2
@@ -668,7 +668,12 @@ class RankedMenu(Menu):
             self.game.user_credentials["name"]
         ])))
         elo = int(elo)
-        elo_of_top_100 = int(elo_of_top_100)
+        elo_of_top_100 = elo_of_top_100
+        elo_of_top = max(elo_of_top_100[0][0], elo_of_top_100[1][0])
+
+        print("elo: " + str(elo))
+        print(elo_of_top_100)
+
         division = "WOODEN"
         if elo >= 1000:
             division = "IRON"
@@ -678,7 +683,7 @@ class RankedMenu(Menu):
             division = "SILVER"
         if elo >= 6000:
             division = "GOLD"
-        if elo >= elo_of_top_100:
+        if elo >= elo_of_top:
             division = "CHALLENGER"
         return (elo,division)
     def get_challengers(self):

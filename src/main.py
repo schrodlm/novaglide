@@ -14,9 +14,7 @@ class Client:
         while self.g.running:
             self.g.curr_menu.display_menu()
             response = self.g.response
-            print(response)
             if response is not None and response["flag"] == "game_state_1":
-                print("main_ingame")
                 self.g.status = "ingame"
                 self.g.start_match(response["data"])
                 self.g.play_match = False
