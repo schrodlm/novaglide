@@ -56,7 +56,10 @@ class Match1v1(Match):
         self.match_stats = MatchStats(entities=self.entities)
         self.p_1_update = None
         self.p_2_update = None
-        
+
+        self.p1_end_game_notified = False
+        self.p2_end_game_notified = False
+ 
     def reset_ball(self):
         self.ball.x = self.max_width // 2
         self.ball.y = self.max_height // 2
@@ -142,6 +145,7 @@ class Match1v1(Match):
         
     def update_player_2(self, inputs):
         self.p2.update(self.dt, None, inputs[0], self.elapsed_time, inputs[1], inputs[2])
+    
     def end_match(self):
         #TODO: has  to return all the stats to the
         # Determine the winner based on the score
@@ -152,7 +156,7 @@ class Match1v1(Match):
 
         # Stop the game loop
         self.playing = False
-        return False
+        return True
 
     def get_match_stats(self):
         return self.match_stats
@@ -177,3 +181,5 @@ class Match1v1(Match):
                 return self.end_match()
         elif self.elapsed_time >= self.match_duration and self.score[0] != self.score[1]:
             return self.end_match()
+        
+        return False

@@ -38,6 +38,7 @@ class EndScreenMenu(Menu):
         stat_font = pygame.font.Font(None, font_size)
 
         while self.run_display:
+            self.share_status()
             #tick and fill new background
             self.game.check_inputs()
             self.game.display.fill((0,0,0))

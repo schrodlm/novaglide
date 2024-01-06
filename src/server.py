@@ -76,6 +76,7 @@ class Server:
         self.server_ip = socket.gethostbyname(self.server)
         #databse connector
         self.db_query = DBQuery(self.config)
+
         #bind server to the stream
         try:
             self.s.bind((self.server, self.port))
@@ -85,16 +86,13 @@ class Server:
         print("Waiting for a connection")
         
     def threaded_match(self, match):
+
         while True:
             end = match.match_loop()
             if end:
-                #TODO: send notification to the clients
-                try:
-                    self.matches.remove(match)
-                except ValueError:
-                    print("match already removed")
-                print("Curent matches: ", self.matches)
+                print(match.playing)
                 break
+
     def threaded_client(self, conn):
         #send client his id
         conn.send(str.encode(str("Welcome, please fill the credentials!")))
@@ -107,11 +105,13 @@ class Server:
                 #closes when no data is received
                 data = conn.recv(2048)
                 decoded_data = pickle.loads(data)
+                print(decoded_data)
                 if not data:
                     conn.send(str.encode("Disconnected"))
                     break
                 else:
                     client_id = decoded_data["sender"]
+
                     if client_id in self.notify_playing: 
                         for match in self.matches:
                             if int(client_id) == int(match.p1_id):
@@ -141,6 +141,7 @@ class Server:
         "sender":"server", 
         "flag":flag,
         "data":data}
+        print(packet)
         return packet
     def read_client_message(self, message):
         #handles the logic of the different packet type
@@ -193,11 +194,29 @@ class Server:
             else:
                 self.queued_solo_players.add(int(message["sender"]))
                 return self.create_packet("Waiting_for_opponent",["no_data"])
+            
         if message["flag"] == "ingame":
             return self.stream_match(message)
 
     def stream_match(self, message):
+        
+        client_id = message["sender"]
+        
         for match in self.matches:
+            if match.playing is False:
+                print("END_GAME_SERVER")
+                if int(client_id) == int(match.p1_id):
+                    reply = self.create_packet("end_game_state_1", match.get_match_stats()) 
+                    match.p1_end_game_notified = True
+
+                if int(client_id) == int(match.p2_id):
+                    reply = self.create_packet("end_game_state_1", match.get_match_stats())
+                    match.p2_end_game_notified = True
+
+                if(match.p2_end_game_notified and match.p1_end_game_notified):
+                    self.matches.remove(match)
+                return reply
+
             if int(message["sender"]) == match.p1_id:
                 match.p_1_update = message["data"]
                 return self.create_packet("game_state_1",[1] + match.share_state())

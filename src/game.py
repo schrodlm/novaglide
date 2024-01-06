@@ -83,13 +83,27 @@ class Game():
         #curr_match = Match1v1(self.display, player, bot, ball)
 
         while self.status == "ingame":
+            
+            print("game_start_match")
             self.Draw(match_data)
             self.check_inputs()
-            self.share_inputs()
-            match_data = self.share_inputs()["data"]
-        #match_stats = curr_match.get_match_stats()
+
+            self.response = self.share_inputs()
+            
+            print(self.response)
+
+            if self.response["flag"] == "game_state_1":
+                print("game_state_1")
+                match_data = self.response["data"]
+            
+            elif self.response["flag"] == "end_game_state_1":
+                self.status = "online"
+                self.play_match = False
+                print("CLIENT_END_GAME_STATE")
+                self.curr_menu = EndScreenMenu(self, self.response["data"])
+
+    
         self.play_match = False
-        #self.curr_menu = EndScreenMenu(self, match_stats)
         
     def reset_keys(self):
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
