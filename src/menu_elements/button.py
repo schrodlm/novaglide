@@ -8,6 +8,8 @@ RuntimeError
 from typing import Tuple, Union
 import utilities
 import pygame
+
+
 class Button(pygame.sprite.Sprite):
     """
     A class representing a button for the menu 
@@ -62,7 +64,7 @@ class Button(pygame.sprite.Sprite):
         Checks whether the mouse is hovering over the button.
     change_color(position: Tuple[int, int]) -> "Button":
         Changes the color of the button based on mouse hovering.
-    
+
     Raises
     ------
     TypeError
@@ -74,20 +76,21 @@ class Button(pygame.sprite.Sprite):
         0-255 range
     InvalidColorString
         If the name of the color is not recognized in pygame
-    
+
     Notes
     -----
     Inherits from pygame.sprite.Sprite.
     """
+
     def __init__(self, image: Union[pygame.Surface, None],
-                pos: Tuple[int, int],
-                text_input: str,
-                font: pygame.font.Font,
-                base_color: Union[str,Tuple[int, int, int]],
-                hovering_color: Union[str,Tuple[int, int, int]]) -> None:
-        #sprite init
+                 pos: Tuple[int, int],
+                 text_input: str,
+                 font: pygame.font.Font,
+                 base_color: Union[str, Tuple[int, int, int]],
+                 hovering_color: Union[str, Tuple[int, int, int]]) -> None:
+        # sprite init
         super().__init__()
-        #test arguments
+        # test arguments
         if (not isinstance(image, pygame.Surface)) and (image is not None):
             raise TypeError("Image has to be a pygame.Surface object or None")
         if not isinstance(pos, tuple):
@@ -106,14 +109,15 @@ class Button(pygame.sprite.Sprite):
             if not isinstance(color, (str, tuple)):
                 raise TypeError("The colours need to be string or tuple")
             elif isinstance(color, tuple):
-                if len(color) !=3:
-                    raise ValueError("The tuples for the color parameter must be of length 3")
+                if len(color) != 3:
+                    raise ValueError(
+                        "The tuples for the color parameter must be of length 3")
                 else:
-                    #raises OutOfBoundsError
-                    utilities.check_color_values(r = color[0], g = color[1],
-                                                 b = color[2])
+                    # raises OutOfBoundsError
+                    utilities.check_color_values(r=color[0], g=color[1],
+                                                 b=color[2])
             else:
-                #raises InvalidColorString
+                # raises InvalidColorString
                 utilities.check_string_color_posibility(color=color)
         self.image = image
         self.x_pos = pos[0]
@@ -139,7 +143,7 @@ class Button(pygame.sprite.Sprite):
         Returns
         -------
         None
-        
+
         Raises
         ------
         TypeError
@@ -147,14 +151,14 @@ class Button(pygame.sprite.Sprite):
         """
         if not isinstance(screen, pygame.Surface):
             raise TypeError("Screen needs to be pygame.Surface")
-        
-        #blit the button texture or just the text of the button
+
+        # blit the button texture or just the text of the button
         if self.image is not None:
             screen.blit(self.image, self.rect)
         screen.blit(self.text, self.text_rect)
         return self
 
-    def check_for_input(self, position: Tuple[int,int]) -> bool:
+    def check_for_input(self, position: Tuple[int, int]) -> bool:
         """
         Checks whether the mouse is hovering over the button.
 
@@ -167,7 +171,7 @@ class Button(pygame.sprite.Sprite):
         -------
         bool
             True if the mouse is hovering over the button, False otherwise
-            
+
         Raises
         ------
         TypeError
@@ -187,13 +191,13 @@ class Button(pygame.sprite.Sprite):
                 if not isinstance(coordinate, int):
                     raise TypeError("All coordinates must be integers")
 
-        #check whether mouse is hovering over the rectangle of the button
-        if (position[0] in range(self.rect.left, self.rect.right) and 
-            position[1] in range(self.rect.top, self.rect.bottom)):
+        # check whether mouse is hovering over the rectangle of the button
+        if (position[0] in range(self.rect.left, self.rect.right) and
+                position[1] in range(self.rect.top, self.rect.bottom)):
             return True
         return False
 
-    def change_color(self, position: Tuple[int,int]) -> "Button":
+    def change_color(self, position: Tuple[int, int]) -> "Button":
         """
         Changes the color of the button based on mouse hovering.
 
@@ -206,7 +210,7 @@ class Button(pygame.sprite.Sprite):
         -------
         Button
             The updated Button instance with the color change.
-        
+
         Raises
         ------
         TypeError
@@ -217,14 +221,15 @@ class Button(pygame.sprite.Sprite):
         CoordinatesOutOfBoundsError
             When the coordinates are outside the window screen bounds
         """
-        #the error handling is done by the check_for_input()
+        # the error handling is done by the check_for_input()
         if self.check_for_input(position=position):
-            self.text = self.font.render(self.text_input, True, 
-                                        self.hovering_color)
+            self.text = self.font.render(self.text_input, True,
+                                         self.hovering_color)
         else:
-            self.text = self.font.render(self.text_input, True, 
-                                        self.base_color)
+            self.text = self.font.render(self.text_input, True,
+                                         self.base_color)
         return self
+
 
 if __name__ == "__main__":
     raise RuntimeError("This module is designed for import only.")

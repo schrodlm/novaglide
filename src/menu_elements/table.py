@@ -4,6 +4,8 @@ from typing import Tuple, List, Dict
 import pygame
 import utilities
 from configuration_mod import Config
+
+
 class Table(pygame.sprite.Sprite):
     """
     A class representing a table for displaying data in a Pygame application.
@@ -71,14 +73,15 @@ class Table(pygame.sprite.Sprite):
     insert_data(data, display)
         Inserts data into the table and renders it on the display.
     """
-    def __init__(self, config: Dict,header: str = "", row_size: int = 32,
-                top_left_coords: Tuple[int,int]= (640,50),font_size: int = 16, 
-                header_font_size: int = 25, n_rows: int = 10,
-                cols_sizes: List[int]= None):
-        #config, init sprite
+
+    def __init__(self, config: Dict, header: str = "", row_size: int = 32,
+                 top_left_coords: Tuple[int, int] = (640, 50), font_size: int = 16,
+                 header_font_size: int = 25, n_rows: int = 10,
+                 cols_sizes: List[int] = None):
+        # config, init sprite
         self.config = config
         super().__init__()
-        #all table attributes
+        # all table attributes
         self.header = header
         self.row_size = row_size
         self.top_left_coords = top_left_coords
@@ -91,21 +94,21 @@ class Table(pygame.sprite.Sprite):
         self.contents_color = self.config["design"]["table_contents_colour"]
         self.max_x = self.top_left_coords[0] + sum(cols_sizes)
         self.max_y = self.top_left_coords[1] + n_rows * row_size
-        #create middle coordiantes where the text is to be put
+        # create middle coordiantes where the text is to be put
         self.text_coords_x = set()
         self.text_coords_y = set()
         for row in range(n_rows):
-            self.text_coords_y.add(self.top_left_coords[1] + 
-                                (self.row_size//2) + row*self.row_size)
+            self.text_coords_y.add(self.top_left_coords[1] +
+                                   (self.row_size//2) + row*self.row_size)
         for column in range(self.n_cols + 1):
             if column != 0:
-                self.text_coords_x.add((self.top_left_coords[0] + 
-                                        sum(self.cols_sizes[:column])) - 
+                self.text_coords_x.add((self.top_left_coords[0] +
+                                        sum(self.cols_sizes[:column])) -
                                        (self.cols_sizes[column - 1])//2)
         self.coordinate_pairs = []
         self.create_positions = True
 
-    def update(self,display):
+    def update(self, display):
         """
         Updates the table on the display.
 
@@ -117,25 +120,26 @@ class Table(pygame.sprite.Sprite):
         if display is not None:
             utilities.draw_text(self.header, self.header_font_size,
                                 int(((self.max_x - self.top_left_coords[0]) // 2)
-                                + self.top_left_coords[0]), self.top_left_coords[1] - 20,
-                                display,color="aqua")
+                                    + self.top_left_coords[0]), self.top_left_coords[1] - 20,
+                                display, color="aqua")
             for row in range(self.n_rows + 1):
                 pygame.draw.line(display, "white",
-                                (self.top_left_coords[0],
-                                self.top_left_coords[1] + row * self.row_size),
-                                (self.max_x, self.top_left_coords[1] + row * self.row_size))
+                                 (self.top_left_coords[0],
+                                  self.top_left_coords[1] + row * self.row_size),
+                                 (self.max_x, self.top_left_coords[1] + row * self.row_size))
             for column in range(self.n_cols + 1):
                 if column == 0:
                     pygame.draw.line(display, "white",
-                                     (self.top_left_coords[0], self.top_left_coords[1]),
-                                    (self.top_left_coords[0], self.max_y))
+                                     (self.top_left_coords[0],
+                                      self.top_left_coords[1]),
+                                     (self.top_left_coords[0], self.max_y))
                 else:
                     pygame.draw.line(display, "white",
-                                    (self.top_left_coords[0] + sum(self.cols_sizes[:column]),
-                                    self.top_left_coords[1]),
-                                    (self.top_left_coords[0] + sum(self.cols_sizes[:column]),
-                                     self.max_y))
-        
+                                     (self.top_left_coords[0] + sum(self.cols_sizes[:column]),
+                                      self.top_left_coords[1]),
+                                     (self.top_left_coords[0] + sum(self.cols_sizes[:column]),
+                                      self.max_y))
+
     def insert_data(self, data, display):
         """
         Inserts data into the table and renders it on the display.
@@ -148,12 +152,14 @@ class Table(pygame.sprite.Sprite):
             The surface on which the table is rendered.
         """
         if self.create_positions:
-            self.coordinate_pairs = [(x,y) for y in sorted(self.text_coords_y) for x in sorted(self.text_coords_x)]
+            self.coordinate_pairs = [(x, y) for y in sorted(
+                self.text_coords_y) for x in sorted(self.text_coords_x)]
         if len(data) <= self.n_rows * self.n_cols:
-            for member,coord in zip(data, self.coordinate_pairs):
+            for member, coord in zip(data, self.coordinate_pairs):
                 utilities.draw_text(member, self.font_size,
-                                coord[0], coord[1],
-                                display,color=self.config["colours"]["aqua"])
+                                    coord[0], coord[1],
+                                    display, color=self.config["colours"]["aqua"])
+
 
 if __name__ == "__main__":
     raise RuntimeError("This module is designed for import only.")
