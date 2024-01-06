@@ -98,9 +98,6 @@ class Button(pygame.sprite.Sprite):
             for coordinate in pos:
                 if not isinstance(coordinate, int):
                     raise TypeError("All coordinates need to be integers")
-                else:
-                    #raises OutOfBoundsError
-                    utilities.check_inside_screen(x = pos[0], y = pos[1])
         if not isinstance(text_input, str):
             raise TypeError("Text_input needs to be passed as a string")
         if not isinstance(font, pygame.font.Font):
@@ -189,10 +186,6 @@ class Button(pygame.sprite.Sprite):
             for coordinate in position:
                 if not isinstance(coordinate, int):
                     raise TypeError("All coordinates must be integers")
-                else:
-                    #raises CoordinatesOutOfBoundsError
-                    utilities.check_inside_screen(x = position[0],
-                                                  y = position[1])
 
         #check whether mouse is hovering over the rectangle of the button
         if (position[0] in range(self.rect.left, self.rect.right) and 
