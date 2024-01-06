@@ -150,16 +150,16 @@ class Match1v1(Match):
         #TODO: has  to return all the stats to the
         # Determine the winner based on the score
         if self.score[0] > self.score[1]:
-            self.match_stats.set_winner(self.p2)
+            self.match_stats.set_winner(self.p2.name)
         elif self.score[0] < self.score[1]:
-            self.match_stats.set_winner(self.p1)
+            self.match_stats.set_winner(self.p1.name)
 
         # Stop the game loop
         self.playing = False
         return True
 
     def get_match_stats(self):
-        return self.match_stats
+        return self.match_stats.get_stats_tuple()
 
     def share_state(self):
         return [self.remaining_time, self.score[0], self.score[1],

@@ -90,7 +90,6 @@ class Server:
         while True:
             end = match.match_loop()
             if end:
-                print(match.playing)
                 break
 
     def threaded_client(self, conn):
@@ -105,7 +104,6 @@ class Server:
                 #closes when no data is received
                 data = conn.recv(2048)
                 decoded_data = pickle.loads(data)
-                print(decoded_data)
                 if not data:
                     conn.send(str.encode("Disconnected"))
                     break
@@ -141,7 +139,6 @@ class Server:
         "sender":"server", 
         "flag":flag,
         "data":data}
-        print(packet)
         return packet
     def read_client_message(self, message):
         #handles the logic of the different packet type
@@ -215,6 +212,8 @@ class Server:
 
                 if(match.p2_end_game_notified and match.p1_end_game_notified):
                     self.matches.remove(match)
+
+                print(reply)
                 return reply
 
             if int(message["sender"]) == match.p1_id:
