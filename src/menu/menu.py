@@ -667,12 +667,10 @@ class RankedMenu(Menu):
         elo, elo_of_top_100 = self.game.unpack_elo_data(self.game.net.send(self.game.parse_data("get_elo",[
             self.game.user_credentials["name"]
         ])))
-        elo = int(elo)
-        elo_of_top_100 = elo_of_top_100
-        elo_of_top = max(elo_of_top_100[0][0], elo_of_top_100[1][0])
-
-        print("elo: " + str(elo))
-        print(elo_of_top_100)
+        try:
+            elo_of_top = max(elo_of_top_100[0][0], elo_of_top_100[1][0])
+        except:
+            elo_of_top = elo_of_top_100[0][0]
 
         division = "WOODEN"
         if elo >= 1000:
