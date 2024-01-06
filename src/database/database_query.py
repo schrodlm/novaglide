@@ -136,13 +136,7 @@ UNION
         games_won = self.get_user_won_games(name)[0]
         games_played = self.get_user_games(name)[0]
 
-        print("games won: " + str(games_won))
-        print("games played: " + str(games_played))
-
-
-        winrate = games_won // games_played
-
-        print("winrate: " + str(winrate))
+        winrate = (games_won // games_played) * 100
         
         try:
             self.cursor.execute(query,

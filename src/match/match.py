@@ -54,6 +54,8 @@ class Match1v1(Match):
         self.entities.add(self.ball, self.p1, self.p2)
         #Stat class initialized
         self.match_stats = MatchStats(entities=self.entities)
+        self.match_stats.set_elo(p1)
+        self.match_stats.set_elo(p2)
         self.p_1_update = None
         self.p_2_update = None
 

@@ -18,7 +18,7 @@ class MatchStats:
 
     def set_elo(self, entity):
         if entity.name in self.stats:
-            self.stats[entity.name][entity.elo]
+            self.stats[entity.name]['elo'] = entity.elo 
 
     def add_touch(self, entity):
 

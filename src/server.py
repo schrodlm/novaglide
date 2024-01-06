@@ -215,23 +215,19 @@ class Server:
 
 
                 if(match.p2_end_game_notified and match.p1_end_game_notified):
-                    print("___starting update____")
                     #insert match data into db
                     self.db_query.insert_1v1_game(match)
-                    print("___ match inserted ____")
-                    
+
                     #calculate new elo for p1 & p2    
                     (p1_new_elo, p2_new_elo) = Elo.calculate_elo(match.p1.elo, match.p2.elo, match.score[0] > match.score[1])
 
                     #update elo in db for each player
                     self.db_query.update_user_elo(match.p1_id, p1_new_elo)
                     self.db_query.update_user_elo(match.p2_id, p2_new_elo)
-                    print("___ elo updated ____") 
                    
                     #update winrate
                     self.db_query.update_user_winrate(match.p1_id, match.p1.name)
                     self.db_query.update_user_winrate(match.p2_id, match.p2.name)
-                    print("___ winrate updated ____")
                     self.matches.remove(match)
 
                 return reply
