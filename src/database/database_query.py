@@ -131,13 +131,13 @@ UNION
 
     def update_user_winrate(self, idx, name):
         query = "UPDATE user_data SET winrate = %s WHERE id = %s"
-        
-        #calculate winrate
+
+        # calculate winrate
         games_won = self.get_user_won_games(name)[0]
         games_played = self.get_user_games(name)[0]
 
         winrate = (games_won // games_played) * 100
-        
+
         try:
             self.cursor.execute(query,
                                 (winrate, idx,))

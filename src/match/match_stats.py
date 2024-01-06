@@ -1,24 +1,28 @@
 from game_objects.ball import Ball
 import sys
 
+
 class MatchStatsData:
     def __init__(self, stats, winner):
         self.stats = stats
         self.winner = winner
-        
+
+
 class MatchStats:
     def __init__(self, entities):
-        
+
         # Filter out the ball from the entities
-        self.entities = [entity for entity in entities if not isinstance(entity, Ball)]
+        self.entities = [
+            entity for entity in entities if not isinstance(entity, Ball)]
 
         # Initialize stats only for the filtered entities
-        self.stats = {entity.name: {'touches': 0, 'goals': 0, 'possession_time': 0, 'elo':0} for entity in self.entities}
+        self.stats = {entity.name: {'touches': 0, 'goals': 0,
+                                    'possession_time': 0, 'elo': 0} for entity in self.entities}
         self.winner = None
 
     def set_elo(self, entity):
         if entity.name in self.stats:
-            self.stats[entity.name]['elo'] = entity.elo 
+            self.stats[entity.name]['elo'] = entity.elo
 
     def add_touch(self, entity):
 
@@ -39,8 +43,6 @@ class MatchStats:
 
     def get_stats(self):
         return MatchStatsData(self.stats, self.winner)
-    
 
     def get_stats_tuple(self):
         return (self.stats, self.winner)
-

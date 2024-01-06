@@ -34,6 +34,7 @@ class Network:
     send(data: str) -> str:
         Sends data over the socket and receives a response.
     """
+
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = "localhost"
