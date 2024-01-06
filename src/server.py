@@ -9,6 +9,7 @@ from match.match import Match1v1
 from game_objects.player import Player
 from game_objects.ball import Ball
 from custom_exceptions import InvalidClientException
+from match.elo import Elo
 
 class Server:
     """
@@ -179,8 +180,10 @@ class Server:
             if len(self.queued_solo_players) >= 1 and (message["sender"]) not in self.queued_solo_players:
                 p_1_id = message["sender"]
                 p_2_id = self.queued_solo_players.pop()
-                player_1 = Player(self.db_query.get_user_name(int(p_1_id))[0], 100,360,self.config, color = "green",server=True)
-                player_2 = Player(self.db_query.get_user_name(int(p_2_id))[0], 1180,360,self.config, color = "green",server=True)
+                p1_name = self.db_query.get_user_name(int(p_1_id))[0]
+                p2_name = self.db_query.get_user_name(int(p_2_id))[0]
+                player_1 = Player(p1_name, 100,360,self.config,elo = self.db_query.get_user_elo(p1_name)[0], color = "green",server=True)
+                player_2 = Player(p2_name, 1180,360,self.config,elo = self.db_query.get_user_elo(p2_name)[0], color = "green",server=True)
                 ball = Ball(self.config,server=True)
                 new_match = Match1v1(self.config, player_1, player_2, ball, p_1_id, p_2_id)
                 self.matches.append(new_match)
@@ -201,7 +204,7 @@ class Server:
         
         for match in self.matches:
             if match.playing is False:
-                print("END_GAME_SERVER")
+                
                 if int(client_id) == int(match.p1_id):
                     reply = self.create_packet("end_game_state_1", match.get_match_stats()) 
                     match.p1_end_game_notified = True
@@ -210,10 +213,27 @@ class Server:
                     reply = self.create_packet("end_game_state_1", match.get_match_stats())
                     match.p2_end_game_notified = True
 
+
                 if(match.p2_end_game_notified and match.p1_end_game_notified):
+                    print("___starting update____")
+                    #insert match data into db
+                    self.db_query.insert_1v1_game(match)
+                    print("___ match inserted ____")
+                    
+                    #calculate new elo for p1 & p2    
+                    (p1_new_elo, p2_new_elo) = Elo.calculate_elo(match.p1.elo, match.p2.elo, match.score[0] > match.score[1])
+
+                    #update elo in db for each player
+                    self.db_query.update_user_elo(match.p1_id, p1_new_elo)
+                    self.db_query.update_user_elo(match.p2_id, p2_new_elo)
+                    print("___ elo updated ____") 
+                   
+                    #update winrate
+                    self.db_query.update_user_winrate(match.p1_id, match.p1.name)
+                    self.db_query.update_user_winrate(match.p2_id, match.p2.name)
+                    print("___ winrate updated ____")
                     self.matches.remove(match)
 
-                print(reply)
                 return reply
 
             if int(message["sender"]) == match.p1_id:

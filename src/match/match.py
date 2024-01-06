@@ -79,14 +79,14 @@ class Match1v1(Match):
             # Ball has entered goal 1
             # Update score and reset ball position, etc.
             self.score = (self.score[0], self.score[1] + 1)
-            self.match_stats.add_goal(self.p1)
+            self.match_stats.add_goal(self.p2)
             self.reset_ball()
             self.end_tiebreak()
 
         if self.goal2.colliderect(self.ball.rect):
             # Ball has entered goal 2, increment score for player 1
             self.score = (self.score[0] + 1, self.score[1])
-            self.match_stats.add_goal(self.p2)
+            self.match_stats.add_goal(self.p1)
             self.reset_ball()
             self.end_tiebreak()
         
@@ -150,9 +150,9 @@ class Match1v1(Match):
         #TODO: has  to return all the stats to the
         # Determine the winner based on the score
         if self.score[0] > self.score[1]:
-            self.match_stats.set_winner(self.p2.name)
-        elif self.score[0] < self.score[1]:
             self.match_stats.set_winner(self.p1.name)
+        elif self.score[0] < self.score[1]:
+            self.match_stats.set_winner(self.p2.name)
 
         # Stop the game loop
         self.playing = False

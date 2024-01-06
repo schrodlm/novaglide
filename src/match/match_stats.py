@@ -5,6 +5,7 @@ class MatchStatsData:
     def __init__(self, stats, winner):
         self.stats = stats
         self.winner = winner
+        
 class MatchStats:
     def __init__(self, entities):
         
@@ -12,20 +13,20 @@ class MatchStats:
         self.entities = [entity for entity in entities if not isinstance(entity, Ball)]
 
         # Initialize stats only for the filtered entities
-        self.stats = {entity.name: {'touches': 0, 'goals': 0, 'possession_time': 0} for entity in self.entities}
-        print(self.stats)
+        self.stats = {entity.name: {'touches': 0, 'goals': 0, 'possession_time': 0, 'elo':0} for entity in self.entities}
         self.winner = None
 
+    def set_elo(self, entity):
+        if entity.name in self.stats:
+            self.stats[entity.name][entity.elo]
 
     def add_touch(self, entity):
-        print("touch" + entity.name)
 
         if entity.name in self.stats:
             self.stats[entity.name]['touches'] += 1
 
     def add_goal(self, entity):
 
-        print("goal" + entity.name)
         if entity.name in self.stats:
             self.stats[entity.name]['goals'] += 1
 

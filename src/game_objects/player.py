@@ -5,7 +5,7 @@ import utilities
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, name, x, y, config,radius = 40, color = "red", server = False):
+    def __init__(self, name, x, y, config,elo = 0, radius = 40, color = "red", server = False):
         
         pygame.sprite.Sprite.__init__(self)
         self.game_settings = utilities.get_settings()
@@ -31,10 +31,12 @@ class Player(pygame.sprite.Sprite):
         self.end_hook = False
         self.pull = False
         self.dashing = False
+
+        self.elo = elo
         
         self.rect = pygame.Rect(x - self.radius, y - self.radius,
                                 2 * self.radius, 2 * self.radius)
-        
+
         if not server:
             self.image = pygame.Surface((2 * self.radius, 2 * self.radius)
                                         , pygame.SRCALPHA)  # make it transparent
@@ -46,7 +48,6 @@ class Player(pygame.sprite.Sprite):
         self.name = name
     def update(self, dt, display, mouse_pos, time, keys, controls):
         #display can be None on the server side so that
-        #TODO: fix diagonal movement, has to be divided by sqrt2
         if controls == "wsad":
             if keys[pygame.K_w] and not self.pull:
                 self.move(0, -500*dt)

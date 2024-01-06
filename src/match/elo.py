@@ -6,12 +6,15 @@ class Elo:
     SCALING_FACTOR = 1/50
     COMPUTATIONAL_STABILITY = 0.00001
     @staticmethod    
-    def calculate_elo(player_1_elo: int, player_2_elo: int, winner: int):
+    def calculate_elo(player_1_elo: int, player_2_elo: int, winner: bool):
         elo_difference = np.abs(int(player_1_elo) - int(player_2_elo))
         result = int(Elo.BASELINE + (elo_difference*Elo.SCALING_FACTOR) + np.log((elo_difference+ Elo.COMPUTATIONAL_STABILITY)))
-        if winner == 1:
+        
+        #player 1 won
+        if winner:
             return (int(player_1_elo + result), int(player_2_elo - result))
-        if winner == 2:
+        #player 2 won
+        else:
             return (int(player_1_elo - result), int(player_2_elo + result))
 
 if __name__ == "__main__":
