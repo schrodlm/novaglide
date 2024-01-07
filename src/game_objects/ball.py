@@ -1,7 +1,13 @@
+"""
+Ball Module
+--------------
+
+A pygame module for the Ball class, handling the dynamics and graphics of a ball in a game environment.
+"""
+from typing import Dict
+
 import pygame
 from pygame.math import Vector2
-from configuration_mod import Config
-from typing import Dict
 # --------------------------BALL-----------------------------------
 
 
@@ -37,7 +43,7 @@ class Ball(pygame.sprite.Sprite):
     check_and_handle_rebound(playfield_border: pygame.Rect)
         Check and handle rebound when the ball collides with the playfield borders.
     """
-    def __init__(self, config: Dict, server = False):
+    def __init__(self, config: Dict, server=False):
         pygame.sprite.Sprite.__init__(self)
         self.config = config
         # radius

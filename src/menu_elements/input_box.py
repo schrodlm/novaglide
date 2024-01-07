@@ -6,13 +6,12 @@ RuntimeError
     When called as the main script and not imported
 """
 from typing import Dict
-from configuration_mod import Config
 import pygame
 pygame.init()
 # initializing basic font for the boxes
 FONT = pygame.font.Font(None, 32)
 
-
+# pylint: disable=too-many-instance-attributes
 class InputBox:
     """
     A class representing an input box for pygame applications.
@@ -70,6 +69,7 @@ class InputBox:
         If the types of the constructor do not correspond to the hinted types.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self,
                  x: int,
                  y: int,
@@ -187,7 +187,7 @@ class InputBox:
 
     def draw_updated(self, screen) -> "InputBox":
         """
-        Manage the whole screen update. 
+        Manage the whole screen update.
         Calls self.update() and self.draw() sequentially.
 
         Parameters
