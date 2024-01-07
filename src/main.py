@@ -1,37 +1,51 @@
-"""Main top-level script that runs the client.
+"""
+Main Module
+-----------
+
+Main top-level script that runs the client.
 """
 from game import Game
 from configuration_mod import Config
 
-
+# pylint: disable=too-few-public-methods
 class Client:
+    """
+    Main client class for initializing and running the game client.
+
+    Attributes
+    ----------
+    config : Config
+        Configuration settings for the game.
+    game : Game
+        The main game instance.
+    """
     def __init__(self) -> None:
         self.config = Config()
-        self.g = Game(config=self.config.config)
+        self.game = Game(config=self.config.config)
 
     def main_lopp(self):
         """client side loop
         """
 
-        while self.g.running:
-            self.g.curr_menu.display_menu()
-            response = self.g.response
+        while self.game.running:
+            self.game.curr_menu.display_menu()
+            response = self.game.response
             if response is not None and response["flag"] == "game_state_1":
-                self.g.status = "ingame"
-                self.g.start_match(response["data"])
-                self.g.play_match = False
+                self.game.status = "ingame"
+                self.game.start_match(response["data"])
+                self.game.play_match = False
 
-            if self.g.play_match is True:
-                server_reply = self.g.net.send(
-                    self.g.parse_data("queued_solo", ["no_data"]))
-                self.g.status = "Waiting_for_opponent"
-                self.g.play_match = False
+            if self.game.play_match is True:
+                server_reply = self.game.net.send(
+                    self.game.parse_data("queued_solo", ["no_data"]))
+                self.game.status = "Waiting_for_opponent"
+                self.game.play_match = False
                 if server_reply["flag"] == "game_state_1":
-                    self.g.status = "ingame"
-                    self.g.start_match(server_reply["data"])
-                    self.g.play_match = False
+                    self.game.status = "ingame"
+                    self.game.start_match(server_reply["data"])
+                    self.game.play_match = False
 
 
 if __name__ == "__main__":
-    client = Client()
-    client.main_lopp()
+    CLIENT = Client()
+    CLIENT.main_lopp()

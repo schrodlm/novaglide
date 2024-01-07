@@ -1,9 +1,17 @@
+"""
+MatchStats Module
+-----------------
+
+Module for the MatchStatsData class, encapsulating match statistics and winner information in a game environment.
+"""
+
+from typing import Dict
+import pygame
+
 from game_objects.ball import Ball
 from game_objects.player import Player
-import pygame
-import sys
-from typing import Dict, Union
 
+# pylint: disable=too-few-public-methods
 class MatchStatsData:
     """
     Container class for match statistics data.
@@ -21,7 +29,7 @@ class MatchStatsData:
         A dictionary containing statistics for each entity in the match.
     winner : str
         The name of the winner entity.
-        
+
     Raises
     ------
     TypeError
@@ -61,7 +69,7 @@ class MatchStats:
         for entity in entities:
             if not isinstance(entity, (Player, Ball)):
                 raise TypeError("Entities must be Player or Ball")
-        
+
         # Filter out the ball from the entities
         self.entities = [
             entity for entity in entities if not isinstance(entity, Ball)]
@@ -117,17 +125,6 @@ class MatchStats:
             The name of the winning entity.
         """
         self.winner = winner
-
-    def get_stats(self):
-        """
-        Get match statistics as MatchStatsData object.
-
-        Returns
-        -------
-        MatchStatsData
-            An object containing match statistics data.
-        """
-        return MatchStatsData(self.stats, self.winner)
 
     def get_stats_tuple(self):
         """

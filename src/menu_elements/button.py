@@ -6,19 +6,19 @@ RuntimeError
     When called as the main script and not imported
 """
 from typing import Tuple, Union
-import utilities
 import pygame
+import utilities
 
-
+ # pylint: disable=too-many-instance-attributes
 class Button(pygame.sprite.Sprite):
     """
-    A class representing a button for the menu 
-    that changes color on mouse hovering. 
+    A class representing a button for the menu
+    that changes color on mouse hovering.
 
     Parameters
     ----------
     image : pygame.Surface or None
-        The image surface for the button. 
+        The image surface for the button.
         If None, the button will use text only.
     pos : Tuple[int, int]
         The position (x, y) of the button.
@@ -81,7 +81,8 @@ class Button(pygame.sprite.Sprite):
     -----
     Inherits from pygame.sprite.Sprite.
     """
-
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-branches
     def __init__(self, image: Union[pygame.Surface, None],
                  pos: Tuple[int, int],
                  text_input: str,
@@ -95,12 +96,13 @@ class Button(pygame.sprite.Sprite):
             raise TypeError("Image has to be a pygame.Surface object or None")
         if not isinstance(pos, tuple):
             raise TypeError("Pos has to be a tuple")
-        elif len(pos) != 2:
+        if len(pos) != 2:
             raise ValueError("The tuple must contain exactly two values")
-        else:
-            for coordinate in pos:
-                if not isinstance(coordinate, int):
-                    raise TypeError("All coordinates need to be integers")
+
+        for coordinate in pos:
+            if not isinstance(coordinate, int):
+                raise TypeError("All coordinates need to be integers")
+
         if not isinstance(text_input, str):
             raise TypeError("Text_input needs to be passed as a string")
         if not isinstance(font, pygame.font.Font):
@@ -108,14 +110,14 @@ class Button(pygame.sprite.Sprite):
         for color in (base_color, hovering_color):
             if not isinstance(color, (str, tuple)):
                 raise TypeError("The colours need to be string or tuple")
-            elif isinstance(color, tuple):
+            if isinstance(color, tuple):
                 if len(color) != 3:
                     raise ValueError(
                         "The tuples for the color parameter must be of length 3")
-                else:
-                    # raises OutOfBoundsError
-                    utilities.check_color_values(r=color[0], g=color[1],
-                                                 b=color[2])
+
+                # raises OutOfBoundsError
+                utilities.check_color_values(r=color[0], g=color[1],
+                                             b=color[2])
             else:
                 # raises InvalidColorString
                 utilities.check_string_color_posibility(color=color)
@@ -178,18 +180,18 @@ class Button(pygame.sprite.Sprite):
             When position is not a tuple or some coordinates in the tuple
             are not integers
         ValueError
-            When the length of the tuple is different from 2    
+            When the length of the tuple is different from 2
         CoordinatesOutOfBoundsError
             When the coordinates are outside the window screen bounds
         """
         if not isinstance(position, tuple):
             raise TypeError("Position has to be a tuple")
-        elif len(position) != 2:
+        if len(position) != 2:
             raise ValueError("The tuple must contain exactly two values")
-        else:
-            for coordinate in position:
-                if not isinstance(coordinate, int):
-                    raise TypeError("All coordinates must be integers")
+
+        for coordinate in position:
+            if not isinstance(coordinate, int):
+                raise TypeError("All coordinates must be integers")
 
         # check whether mouse is hovering over the rectangle of the button
         if (position[0] in range(self.rect.left, self.rect.right) and
@@ -217,7 +219,7 @@ class Button(pygame.sprite.Sprite):
             When position is not a tuple or some coordinates in the tuple
             are not integers
         ValueError
-            When the length of the tuple is different from 2    
+            When the length of the tuple is different from 2
         CoordinatesOutOfBoundsError
             When the coordinates are outside the window screen bounds
         """

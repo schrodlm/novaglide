@@ -4,7 +4,7 @@
 
 class OutOfBoundsError(Exception):
     """
-    Custom exception class for handling cases where values exceed 
+    Custom exception class for handling cases where values exceed
     expected range.
 
     Parameters
@@ -36,6 +36,16 @@ class InvalidColorString(Exception):
 
 
 class InvalidClientException(Exception):
+    """
+    Exception raised for errors in the client validation process.
+
+    This exception is used to indicate issues with a client, such as incorrect or invalid client data.
+
+    Parameters
+    ----------
+    message : str
+        Explanation of the error.
+    """
     def __init__(self, message="Incorrect client"):
         self.message = message
         super().__init__(self.message)
