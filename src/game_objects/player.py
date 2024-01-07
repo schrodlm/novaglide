@@ -1,12 +1,21 @@
+"""
+Player Module
+--------------
+
+Module for the Player class, integrating movement, actions, and graphical representation in a pygame-based game environment.
+"""
+
+from typing import Dict, Tuple, Union
+
 import pygame
 from pygame import Vector2
 import utilities
-from typing import Dict, Tuple, List, Union
 # --------------------------PLAYER-----------------------------------
 
-
+# pylint: disable=too-many-instance-attributes
 class Player(pygame.sprite.Sprite):
     """
+    # pylint: disable=too-many-arguments
     A class representing a player in the game.
 
     Attributes
@@ -90,16 +99,17 @@ class Player(pygame.sprite.Sprite):
         Perform the dash action.
     check_cooldowns(time: float) -> None
         Check and update cooldowns for hook and dash actions.
-        
+
     Raises
     ------
-    TypeError   
+    TypeError
         If the parameters are of incorrect type.
     """
-    def __init__(self, name: str, x: int, y: int, config: Dict, elo: int = 0, 
-                radius: int = 40, color: str ="red", server: bool = False):
+    #pylint: disable=too-many-arguments
+    def __init__(self, name: str, x: int, y: int, config: Dict, elo: int = 0,
+                 radius: int = 40, color: str = "red", server: bool = False):
         pygame.sprite.Sprite.__init__(self)
-        
+
         if not isinstance(name, str) or not isinstance(config, dict):
             raise TypeError("Incorrect type of the parameters.")
         if not isinstance(color, str) or not isinstance(server, bool):
@@ -146,6 +156,9 @@ class Player(pygame.sprite.Sprite):
 
         self.name = name
 
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-branches
+    #pylint: disable=too-many-statements
     def update(self, dt: float, display: Union[pygame.Surface, None], mouse_pos: Tuple[int, int], time: float, keys: pygame.key.ScancodeWrapper, controls: str):
         """
         Update the player's state based on input and game logic.
@@ -164,10 +177,10 @@ class Player(pygame.sprite.Sprite):
             The keys pressed.
         controls : str
             The control scheme ("wsad" or "arrows").
-        
+
         Raises
         ------
-        TypeError   
+        TypeError
             If the parameters are of incorrect type.
         """
         if not isinstance(dt, float):
@@ -176,7 +189,7 @@ class Player(pygame.sprite.Sprite):
             raise TypeError("Incorrect type of the parameters.")
         if not isinstance(time, float) or not isinstance(keys, pygame.key.ScancodeWrapper) or not isinstance(controls, str):
             raise TypeError("Incorrect type of the parameters.")
-        if controls not in ["wsad","arrows"]:
+        if controls not in ["wsad", "arrows"]:
             raise TypeError("Controls must be wsad or arrows")
         # display can be None on the server side
         if controls == "wsad":
@@ -239,15 +252,15 @@ class Player(pygame.sprite.Sprite):
             The change in the x-coordinate.
         dy : Union[int, float]
             The change in the y-coordinate.
-            
+
         Raises
         ------
-        TypeError 
+        TypeError
             If the parameters are of incorrect type.
-        
+
         """
-        for d in (dx,dy):
-            if not isinstance(d,(int, float)):
+        for d in (dx, dy):
+            if not isinstance(d, (int, float)):
                 raise TypeError("Dx and dy must be numbers.")
         self.x += dx
         self.y += dy
@@ -278,7 +291,7 @@ class Player(pygame.sprite.Sprite):
             The time step.
         display : pygame.Surface or None
             The display surface. None on the server side.
-        
+
         """
         if not isinstance(dt, float):
             raise TypeError("Dt must be a float")
@@ -318,7 +331,8 @@ class Player(pygame.sprite.Sprite):
             self.pull = False
         self.setRect()
 
-    def intersect_vector_rectangle(self, point_a: Vector2, point_b: Vector2):
+    @staticmethod
+    def intersect_vector_rectangle(point_a: Vector2, point_b: Vector2):
         """
         Find the intersection point between a vector and the game border.
 
@@ -387,8 +401,8 @@ class Player(pygame.sprite.Sprite):
         """
         # determines whether hook is out of bounds
         if (self.hook_coords.x < 0 or
-            self.hook_coords.x > self.config["resolution"]["width"]
-            or self.hook_coords.y < 0 or
+                self.hook_coords.x > self.config["resolution"]["width"]
+                or self.hook_coords.y < 0 or
                 self.hook_coords.y > self.config["resolution"]["height"]):
             return False
         return True

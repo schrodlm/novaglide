@@ -1,12 +1,56 @@
+"""
+Endscreen Module
+----------------
+
+Module for EndScreenMenu, a class that creates and manages the end screen menu of a game, displaying match statistics and winner information.
+"""
+
+import sys
 import pygame
+
 from menu.menu import Menu
 from menu_elements.button import Button
 import utilities
-import sys
 from match.elo import Elo
 
-
+# pylint: disable=too-many-instance-attributes
 class EndScreenMenu(Menu):
+    """
+    A class for creating and displaying the end screen menu in a game.
+
+    This menu shows the final match statistics, including player performance and the match winner.
+
+    Attributes
+    ----------
+    buttons : pygame.sprite.Group
+        Group of buttons used in the menu.
+    font : pygame.font.Font
+        Font used for text in the menu.
+    stats : dict
+        Dictionary containing match statistics for each player.
+    winner : str
+        Name of the winning player or None in case of a tie.
+    old_elo : list
+        List of old Elo ratings of the players.
+    goals : list
+        List of goals scored by each player.
+    new_elos : tuple
+        Tuple containing the new Elo ratings for the players.
+
+    Parameters
+    ----------
+    game : Game
+        The main game object.
+    match_stats : tuple
+        Tuple containing match statistics and the winner's name.
+
+    Methods
+    -------
+    display_menu()
+        Displays the end screen menu and handles user interaction.
+    check_events()
+        Handles events like button clicks in the menu.
+    """
     def __init__(self, game, match_stats):
         Menu.__init__(self, game)
 
@@ -25,13 +69,14 @@ class EndScreenMenu(Menu):
 
         self.old_elo = []
         self.goals = []
-        for entity, stats in self.stats.items():
+        for _, stats in self.stats.items():
             self.old_elo.append(stats['elo'])
             self.goals.append(stats['goals'])
 
         self.new_elos = Elo.calculate_elo(
             self.old_elo[0], self.old_elo[1], self.goals[0] > self.goals[1])
 
+    # pylint: disable=too-many-locals
     def display_menu(self):
         self.run_display = True
         header_start_y = 150
@@ -107,7 +152,6 @@ class EndScreenMenu(Menu):
 
     def check_events(self):
         for event in pygame.event.get():
-            # closing the game with mouse
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()

@@ -1,3 +1,12 @@
+"""
+Server Module
+-------------
+
+This module contains the Server class, which is responsible for managing a game server. It handles player connections, queues for solo and duo matches, and ongoing matches. The server facilitates communication between clients, processes game states, and manages match lifecycles.
+
+The Server class uses threading to handle multiple client connections and match processes simultaneously, ensuring smooth gameplay and real-time updates for all connected clients.
+"""
+
 import socket
 import pickle
 import datetime
@@ -5,11 +14,13 @@ import pygame
 from database.database_query import DBQuery
 from _thread import start_new_thread
 from configuration_mod import Config
-from match.match import Match1v1
+from custom_exceptions import InvalidClientException
+
 from game_objects.player import Player
 from game_objects.ball import Ball
-from custom_exceptions import InvalidClientException
+
 from match.elo import Elo
+from match.match import Match1v1
 
 
 class Server:
@@ -70,7 +81,7 @@ class Server:
         # TODO: split seperate config for server and client
         self.config = configuration
         # initiate adress
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server = "localhost"
         self.port = 5555
         self.server_ip = socket.gethostbyname(self.server)
@@ -79,23 +90,45 @@ class Server:
 
         # bind server to the stream
         try:
-            self.s.bind((self.server, self.port))
-        except socket.error as e:
-            print(str(e))
-        self.s.listen(10)
+            self.socket.bind((self.server, self.port))
+        except socket.error as socket_error:
+            print(str(socket_error))
+        self.socket.listen(10)
         print("Waiting for a connection")
 
-    def threaded_match(self, match):
+    @staticmethod
+    def threaded_match(match):
+        """
+        Continuously run the match loop in a separate thread until the match ends.
+        """
 
         while True:
             end = match.match_loop()
             if end:
                 break
 
+    def handle_game_state(self, client_id):
+        """
+        Handle the game state for a client based on their ID.
+        """
+        reply = ""
+        for match in self.matches:
+            if int(client_id) == int(match.p1_id):
+                reply = self.create_packet(
+                    "game_state_1", [1] + match.share_state())
+                self.notify_playing.remove(client_id)
+            if int(client_id) == int(match.p2_id):
+                reply = self.create_packet(
+                    "game_state_1", [2] + match.share_state())
+                self.notify_playing.remove(client_id)
+        return reply
+
     def threaded_client(self, conn):
+        """
+        Manage client-server communication in a separate thread.
+        """
         # send client his id
         conn.send(str.encode(str("Welcome, please fill the credentials!")))
-        # TODO: maybe change reply to soemthing that can be pickled
         reply = ""
         client_id = "unknown"
         try:
@@ -107,24 +140,17 @@ class Server:
                 if not data:
                     conn.send(str.encode("Disconnected"))
                     break
-                else:
-                    client_id = decoded_data["sender"]
 
-                    if client_id in self.notify_playing:
-                        for match in self.matches:
-                            if int(client_id) == int(match.p1_id):
-                                reply = self.create_packet(
-                                    "game_state_1", [1] + match.share_state())
-                                self.notify_playing.remove(client_id)
-                            if int(client_id) == int(match.p2_id):
-                                reply = self.create_packet(
-                                    "game_state_1", [2] + match.share_state())
-                                self.notify_playing.remove(client_id)
-                    else:
-                        reply = self.read_client_message(decoded_data)
+                client_id = decoded_data["sender"]
+
+                if client_id in self.notify_playing:
+                    reply = self.handle_game_state(client_id)
+
+                else:
+                    reply = self.read_client_message(decoded_data)
                 conn.sendall(pickle.dumps(reply))
-        except Exception as e:
-            print(e)
+        except (socket.error, pickle.UnpicklingError, EOFError) as exception:
+            print(f"Error: {exception}")
         finally:
             # removing client from subscribers after breaking communication
             if client_id in self.online_players:
@@ -136,7 +162,11 @@ class Server:
         print("Connection Closed")
         conn.close()
 
-    def create_packet(self, flag, data):
+    @staticmethod
+    def create_packet(flag, data):
+        """
+        Create a data packet with a specific flag and data.
+        """
         packet = {"time": datetime.datetime.now(),
                   "sender": "server",
                   "flag": flag,
@@ -144,6 +174,11 @@ class Server:
         return packet
 
     def read_client_message(self, message):
+        """
+        Process and respond to a client's message based on its flag.
+        """
+        #default result
+        result = None
         # handles the logic of the different packet type
         if message["flag"] == "log_in_data":
             allowed = self.handle_login(message["data"])
@@ -154,34 +189,37 @@ class Server:
                     raise InvalidClientException(
                         "This player is already logged in!")
                 self.online_players.add(client_id[0])
-                return self.create_packet("change_of_status", ["online",
-                                                               allowed, client_id[0]])
+                result = self.create_packet("change_of_status", ["online",
+                                                                 allowed, client_id[0]])
             else:
-                return self.create_packet("change_of_status",
-                                          ["waiting_for_approval", allowed, "uknown"])
+                result = self.create_packet("change_of_status",
+                                            ["waiting_for_approval", allowed, "uknown"])
 
-        if message["flag"] == "get_elo":
-            return self.create_packet("client_elo", [self.db_query.get_user_elo(message["data"][0])[0],
-                                                     self.db_query.query_data("top_elo")])
+        elif message["flag"] == "get_elo":
+            user_elo = self.db_query.get_user_elo(message["data"][0])[0]
+            top_elo = self.db_query.query_data("top_elo")
+            result = self.create_packet("client_elo", [user_elo, top_elo])
 
-        if message["flag"] == "get_challengers":
-            return self.create_packet("challengers",
-                                      self.db_query.query_data("get_challengers"))
+        elif message["flag"] == "get_challengers":
+            result = self.create_packet("challengers",
+                                        self.db_query.query_data("get_challengers"))
 
-        if message["flag"] == "get_winrate":
-            return self.create_packet("winrate", [
+        elif message["flag"] == "get_winrate":
+            result = self.create_packet("winrate", [
                 self.db_query.get_user_winrate(message["data"][0])[0]])
 
-        if message["flag"] == "get_match_history":
-            return self.create_packet("match_history", [self.db_query.
-                                                        get_history(
-                                                            message["data"][0]),
-                                                        self.db_query.
-                                                        get_history(message["data"][0],
-                                                                    solo=False)])
+        elif message["flag"] == "get_match_history":
+            result = self.create_packet("match_history", [self.db_query.
+                                                          get_history(
+                                                              message["data"][0]),
+                                                          self.db_query.
+                                                          get_history(message["data"][0],
+                                                                      solo=False)])
 
-        if message["flag"] == "queued_solo":
-            if len(self.queued_solo_players) >= 1 and (message["sender"]) not in self.queued_solo_players:
+        elif message["flag"] == "queued_solo":
+            if (len(self.queued_solo_players) >= 1 and
+                    (message["sender"]) not in self.queued_solo_players):
+
                 p_1_id = message["sender"]
                 p_2_id = self.queued_solo_players.pop()
                 p1_name = self.db_query.get_user_name(int(p_1_id))[0]
@@ -197,16 +235,21 @@ class Server:
                 start_new_thread(self.threaded_match, (new_match, ))
                 self.notify_playing.add(int(p_1_id))
                 self.notify_playing.add(int(p_2_id))
-                return self.create_packet("Waiting_for_opponent", ["no_data"])
+                result = self.create_packet("Waiting_for_opponent", ["no_data"])
             else:
                 self.queued_solo_players.add(int(message["sender"]))
-                return self.create_packet("Waiting_for_opponent", ["no_data"])
+                result = self.create_packet("Waiting_for_opponent", ["no_data"])
 
-        if message["flag"] == "ingame":
-            return self.stream_match(message)
+        elif message["flag"] == "ingame":
+            result = self.stream_match(message)
+
+        return result
 
     def stream_match(self, message):
-
+        """
+        Stream match updates to a client and handle end-game scenarios.
+        """
+        reply = None
         client_id = message["sender"]
 
         for match in self.matches:
@@ -245,25 +288,36 @@ class Server:
 
             if int(message["sender"]) == match.p1_id:
                 match.p_1_update = message["data"]
-                return self.create_packet("game_state_1", [1] + match.share_state())
-            elif int(message["sender"]) == match.p2_id:
-                match.p_2_update = message["data"]
-                return self.create_packet("game_state_1", [2] + match.share_state())
+                reply = self.create_packet("game_state_1", [1] + match.share_state())
+                return reply
 
-    def handle_login(self, d):
-        allowed = self.db_query.allow_user_credentials(d[0], d[1])
+            if int(message["sender"]) == match.p2_id:
+                match.p_2_update = message["data"]
+                reply = self.create_packet("game_state_1", [2] + match.share_state())
+                return reply
+
+            return reply
+
+    def handle_login(self, credentials):
+        """
+        Handle the login process for a client using their credentials.
+        """
+        allowed = self.db_query.allow_user_credentials(credentials[0], credentials[1])
         return allowed
 
     def start_server(self):
+        """
+        Start the server and handle incoming client connections.
+        """
         pygame.init()
         while True:
-            conn, addr = self.s.accept()
+            conn, addr = self.socket.accept()
             print("Connected to: ", addr)
 
             start_new_thread(self.threaded_client, (conn,))
 
 
 if __name__ == "__main__":
-    config = Config()
-    server = Server(config.config)
-    server.start_server()
+    CONFIG = Config()
+    SERVER = Server(CONFIG.config)
+    SERVER.start_server()

@@ -1,7 +1,15 @@
-import numpy as np
+"""
+Player Module
+--------------
+
+Module providing functionality to calculate updated Elo ratings for players in a competitive game environment.
+"""
+
 from random import randint
 from typing import Tuple
+import numpy as np
 
+# pylint: disable=too-few-public-methods
 class Elo:
     """
     Elo rating calculation for a two-player game.
@@ -31,7 +39,7 @@ class Elo:
     COMPUTATIONAL_STABILITY = 0.00001
 
     @staticmethod
-    def calculate_elo(player_1_elo: int, player_2_elo: int, winner: bool) -> Tuple[int,int]:
+    def calculate_elo(player_1_elo: int, player_2_elo: int, winner: bool) -> Tuple[int, int]:
         """
         Calculate the new Elo ratings for two players after a game.
 
@@ -61,8 +69,7 @@ class Elo:
         if winner:
             return (int(player_1_elo + result), int(player_2_elo - result))
         # player 2 won
-        else:
-            return (int(player_1_elo - result), int(player_2_elo + result))
+        return (int(player_1_elo - result), int(player_2_elo + result))
 
 
 if __name__ == "__main__":
@@ -70,6 +77,6 @@ if __name__ == "__main__":
     for _ in range(1000):
         a = randint(500, 7000)
         b = randint(500, 7000)
-        winner = randint(1, 2)
-        new_elo = Elo.calculate_elo(a, b, winner)
-        print(f"Player 1: {a}, Player 2: {b}, Winner {winner} new elo{new_elo}, ammount: {np.abs(a - new_elo[0])}")
+        winner_test = randint(1, 2)
+        new_elo = Elo.calculate_elo(a, b, winner_test)
+        print(f"Player 1: {a}, Player 2: {b}, Winner {winner_test} new elo{new_elo}, ammount: {np.abs(a - new_elo[0])}")

@@ -7,7 +7,7 @@ RuntimeError
 """
 import yaml
 
-
+# pylint: disable=too-few-public-methods
 class Config:
     """
     Config class for managing configuration settings.

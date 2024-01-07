@@ -1,11 +1,82 @@
-"""_summary_
+"""
+Match Module
+------------
+
+A module for managing and updating the state of a 1v1 match in a pygame-based game, including player actions, ball dynamics, and match statistics.
 """
 import pygame
 from pygame import Vector2
 from match.match_stats import MatchStats
 
-
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-few-public-methods
 class Match():
+    """
+    A class to initialize and manage the basic state of a game match.
+
+    Attributes
+    ----------
+    config : dict
+        Configuration settings for the match.
+    max_height : int
+        Maximum height of the game display.
+    max_width : int
+        Maximum width of the game display.
+    display : pygame.Surface
+        The main display surface of the game.
+    match_duration : int
+        Duration of the match in seconds.
+    score : tuple
+        Current score of the match.
+    tiebreak : bool
+        Flag to indicate if the match is in a tiebreak.
+    end_game_in_tiebreak : bool
+        Flag to end the game during a tiebreak.
+    entities : pygame.sprite.Group
+        Group containing all game entities.
+    solids : pygame.sprite.Group
+        Group containing all solid objects.
+    border : pygame.Rect
+        The border of the play area.
+    clock : pygame.time.Clock
+        Clock object for managing frame rate.
+    dt : float
+        Time delta for frame rate management.
+    last_tick : int
+        Timestamp of the last tick.
+    ttime : int
+        Total time passed.
+    playing : bool
+        Flag indicating if the match is currently playing.
+    goal1 : pygame.Rect
+        Rect object for the first goal.
+    goal2 : pygame.Rect
+        Rect object for the second goal.
+    mpos_1 : tuple
+        Mouse position for player 1.
+    mpos_2 : tuple
+        Mouse position for player 2.
+    start_time : int
+        Start time of the match.
+    elapsed_time : float
+        Elapsed time since the start of the match.
+    dash_time_1 : float
+        Remaining dash cooldown time for player 1.
+    hook_time_1 : float
+        Remaining hook cooldown time for player 1.
+    dash_time_2 : float
+        Remaining dash cooldown time for player 2.
+    hook_time_2 : float
+        Remaining hook cooldown time for player 2.
+    remaining_time : float
+        Remaining time of the match.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration settings for the match.
+    """
+
     def __init__(self, config):
         pygame.init()
         self.config = config
@@ -48,7 +119,49 @@ class Match():
 
 
 class Match1v1(Match):
+    """
+    A subclass of Match for managing 1v1 game matches.
 
+    Attributes
+    ----------
+    p1_id : str
+        Identifier for player 1.
+    p2_id : str
+        Identifier for player 2.
+    p1 : Player
+        Player 1 object.
+    p2 : Player
+        Player 2 object.
+    ball : Ball
+        Ball object in the match.
+    match_stats : MatchStats
+        Object for tracking match statistics.
+    p_1_update : Any
+        Update information for player 1.
+    p_2_update : Any
+        Update information for player 2.
+    p1_end_game_notified : bool
+        Flag indicating if player 1 has been notified of game end.
+    p2_end_game_notified : bool
+        Flag indicating if player 2 has been notified of game end.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration settings for the match.
+    p1 : Player
+        Player 1 object.
+    p2 : Player
+        Player 2 object.
+    ball : Ball
+        Ball object in the match.
+    p1_id : str
+        Identifier for player 1.
+    p2_id : str
+        Identifier for player 2.
+    """
+
+    # pylint: disable=too-many-arguments
     def __init__(self, config, p1, p2, ball, p1_id, p2_id):
         super().__init__(config)
         self.p1_id = p1_id
@@ -67,7 +180,14 @@ class Match1v1(Match):
         self.p1_end_game_notified = False
         self.p2_end_game_notified = False
 
+
     def reset_ball(self):
+        """
+        Reset the ball to its initial position and speed.
+
+        This method is called when a goal is scored or when the match is reset.
+        """
+
         self.ball.x = self.max_width // 2
         self.ball.y = self.max_height // 2
         # Reset the ball's speed
@@ -77,10 +197,16 @@ class Match1v1(Match):
         self.ball.setRect()
 
     def end_tiebreak(self):
+        """
+        End the tiebreak phase of the match if it's currently in a tiebreak.
+        """
         if self.tiebreak:
             self.end_game_in_tiebreak = True
 
     def update_game_state(self):
+        """
+        Update the game state, including ball-goal collisions, player-ball interactions, and cooldown calculations.
+        """
         # Check for ball collision with goals
         if self.goal1.colliderect(self.ball.rect):
             # Ball has entered goal 1
@@ -154,14 +280,38 @@ class Match1v1(Match):
             self.hook_time_2 = 0
 
     def update_player_1(self, inputs):
+        """
+        Update the state of player 1 based on the given inputs.
+
+        Parameters
+        ----------
+        inputs : list
+            Input data for updating player 1's state.
+        """
         self.p1.update(
             self.dt, None, inputs[0], self.elapsed_time, inputs[1], inputs[2])
 
     def update_player_2(self, inputs):
+        """
+        Update the state of player 2 based on the given inputs.
+
+        Parameters
+        ----------
+        inputs : list
+            Input data for updating player 2's state.
+        """
         self.p2.update(
             self.dt, None, inputs[0], self.elapsed_time, inputs[1], inputs[2])
 
     def end_match(self):
+        """
+        End the match, determine the winner based on the score, and stop the game loop.
+
+        Returns
+        -------
+        bool
+            True if the match ends successfully.
+        """
         # TODO: has  to return all the stats to the
         # Determine the winner based on the score
         if self.score[0] > self.score[1]:
@@ -174,9 +324,25 @@ class Match1v1(Match):
         return True
 
     def get_match_stats(self):
+        """
+        Retrieve the match statistics.
+
+        Returns
+        -------
+        tuple
+            A tuple containing match statistics.
+        """
         return self.match_stats.get_stats_tuple()
 
     def share_state(self):
+        """
+        Share the current state of the match.
+
+        Returns
+        -------
+        list
+            A list containing various elements of the match's current state.
+        """
         return [self.remaining_time, self.score[0], self.score[1],
                 self.p1.name, self.p2.name,
                 self.p1.x, self.p1.y, self.p2.x, self.p2.y, self.p1.hook_coords.x,
@@ -186,6 +352,14 @@ class Match1v1(Match):
                 self.ball.x, self.ball.y, self.p1.hooking, self.p2.hooking, self.tiebreak]
 
     def match_loop(self):
+        """
+        The main game loop for the match, handling state updates and match termination conditions.
+
+        Returns
+        -------
+        bool
+            False if the match continues, True if the match ends.
+        """
         # main game loop
         self.update_game_state()
         # Update the timer

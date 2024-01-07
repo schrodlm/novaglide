@@ -1,6 +1,17 @@
-import psycopg2
+"""
+DBQuery Module
+--------------
+
+Provides the DBQuery class for database interactions in gaming applications, handling user and match data using psycopg2 for PostgreSQL.
+"""
+
 from datetime import datetime
 from typing import Dict
+
+import psycopg2
+
+
+# pylint: disable=too-many-instance-attributes
 class DBQuery:
     """
     Class for handling database queries related to user and match data.
@@ -41,6 +52,7 @@ class DBQuery:
     allow_user_credentials(username: str, password: str)
         Validate user credentials and handle user registration.
     """
+
     def __init__(self, config: Dict) -> None:
         self.config = config
         self.database = self.config["database"]["database"]
@@ -86,7 +98,7 @@ UNION
         -------
         Tuple
             A tuple containing the result of the query.
-        
+
         Raises
         ------
         TypeError
@@ -119,7 +131,7 @@ UNION
         -------
         Tuple
             A tuple containing the result of the query.
-            
+
         Raises
         ------
         TypeError
@@ -152,7 +164,7 @@ UNION
         -------
         tuple
             A tuple containing the result of the query.
-            
+
         Raises
         ------
         TypeError
@@ -217,7 +229,7 @@ UNION
         -------
         Tuple
             A tuple containing the result of the query.
-            
+
         Raises
         ------
         TypeError
@@ -250,7 +262,7 @@ UNION
         -------
         Tuple
             A tuple containing the result of the query.
-            
+
         Raises
         ------
         TypeError
@@ -342,7 +354,7 @@ UNION
             The ID of the user.
         new_elo : int
             The new Elo rating.
-            
+
         Raises
         ------
         TypeError
@@ -378,7 +390,7 @@ UNION
         -------
         List
             A list containing the result of the query.
-            
+
         Raises
         ------
         TypeError
@@ -423,7 +435,7 @@ UNION
         -------
         List
             A list containing the result of the query.
-            
+
         Raises
         ------
         TypeError
@@ -449,8 +461,8 @@ UNION
         self.connection.close()
 
     def create_new_connection(self):
-        """Establishes a new connection to the database 
-        
+        """Establishes a new connection to the database
+
         Raises
         ------
         ConnectionError
@@ -458,12 +470,13 @@ UNION
         """
         try:
             self.connection = psycopg2.connect(database=self.database,
-                                            user=self.user, password=self.password,
-                                            host=self.host, port=self.port)
+                                               user=self.user, password=self.password,
+                                               host=self.host, port=self.port)
             # Opening cursor to the database
             self.cursor = self.connection.cursor()
         except:
-            raise ConnectionError("Failed to connect to the database make sure it is running")
+            raise ConnectionError(
+                "Failed to connect to the database make sure it is running")
 
     def allow_user_credentials(self, username: str, password: str):
         """
@@ -480,7 +493,7 @@ UNION
         -------
         str
             A string indicating the result of the validation/registration process.
-            
+
         Raises
         ------
         TypeError
