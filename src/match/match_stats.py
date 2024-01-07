@@ -4,8 +4,6 @@ MatchStats Module
 
 Module for the MatchStatsData class, encapsulating match statistics and winner information in a game environment.
 """
-
-from typing import Dict
 import pygame
 
 from game_objects.ball import Ball
