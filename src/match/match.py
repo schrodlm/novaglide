@@ -84,7 +84,7 @@ class Match():
             "height"], self.config["resolution"]["width"]
         # Define borders
         self.display = pygame.Surface((self.max_width, self.max_height))
-        self.match_duration = 30
+        self.match_duration = 5*60
         self.score = (0, 0)
         self.tiebreak = False
         self.end_game_in_tiebreak = False
@@ -93,7 +93,7 @@ class Match():
 
         self.border = self.display.get_rect()
         self.clock = pygame.time.Clock()
-        self.dt = 0
+        self.dt = 0.0
         self.last_tick = pygame.time.get_ticks()
         self.ttime = self.clock.tick()
         self.clock.tick(60)

@@ -281,7 +281,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = pygame.Rect(self.x - self.radius, self.y - self.radius,
                                 2 * self.radius, 2 * self.radius)
 
-    def hook(self, dt: float, display: Union[pygame.Surface, None]):
+    def hook(self, dt: Union[float, int], display: Union[pygame.Surface, None]):
         """
         Perform the hook action.
 
@@ -293,7 +293,7 @@ class Player(pygame.sprite.Sprite):
             The display surface. None on the server side.
 
         """
-        if not isinstance(dt, float):
+        if not isinstance(dt, (float,int)):
             raise TypeError("Dt must be a float")
         if display is not None and not isinstance(display, pygame.Surface):
             raise TypeError("Display must be pyganme.Surface or None.")
@@ -311,7 +311,7 @@ class Player(pygame.sprite.Sprite):
                 pygame.draw.line(display, "orange4", (self.x, self.y),
                                  (self.hook_coords.x, self.hook_coords.y), 3)
 
-    def pull_player(self, dt: float):
+    def pull_player(self, dt: Union[float, int]):
         """
         Pull the player towards the hook.
 
@@ -320,7 +320,7 @@ class Player(pygame.sprite.Sprite):
         dt : float
             The time step.
         """
-        if not isinstance(dt, float):
+        if not isinstance(dt, (float,int)):
             raise TypeError("Dt must be a float")
         direction = self.hook_initial - self.coords_current
         self.coords_current += 1200*dt*(direction.normalize())
@@ -352,10 +352,11 @@ class Player(pygame.sprite.Sprite):
             raise TypeError("Both points must be a Vector2.")
         # this method finds the point where vector between two points
         # intersects with the border
-        t_1 = (-point_a.x)/(point_b.x - point_a.x)
-        t_2 = (1280 - point_a.x)/(point_b.x - point_a.x)
-        t_3 = (-point_a.y)/(point_b.y - point_a.y)
-        t_4 = (720 - point_a.y)/(point_b.y - point_a.y)
+        stability = 0.00000001
+        t_1 = (-point_a.x)/max(point_b.x - point_a.x, stability)
+        t_2 = (1280 - point_a.x)/max(point_b.x - point_a.x, stability)
+        t_3 = (-point_a.y)/max(point_b.y - point_a.y, stability)
+        t_4 = (720 - point_a.y)/max(point_b.y - point_a.y, stability)
         positive_solution = []
         for t in (t_1, t_2, t_3, t_4):
             if t > 0:
