@@ -2,7 +2,7 @@ import pytest
 import sys
 import pygame
 from match.elo import Elo
-from match.match_stats import MatchStats, MatchStatsData
+from match.match_stats import MatchStats
 from game_objects.player import Player
 from menu_elements.table import Table
 from menu_elements.button import Button
@@ -52,19 +52,6 @@ def test_match_stats_constructor():
         MatchStats([Player("",3,4,config, 59,server=True),3])
     assert str(exc_info.value) == "Entities must be Player or Ball"
 
-def test_match_stats_data_constructor():
-    config = Config()
-    config = config.config
-    player = Player("",3,4,config, 59,server=True)
-    group_1 = pygame.sprite.Group()
-    stats = MatchStats([player])
-    with pytest.raises(TypeError) as exc_info:
-        MatchStatsData(stats.stats,player)
-    assert str(exc_info.value) == "Incorrect type of input parameters"
-
-
-
-
 @pytest.fixture
 def create_entities():
     config = Config()
@@ -88,11 +75,7 @@ def test_set_add_stats(create_entities):
         assert 1 == match_stats.stats[entity.name]["touches"]
         assert 59 == match_stats.stats[entity.name]["elo"]
         assert 1 == match_stats.stats[entity.name]["goals"]
-        
-def test_get_stats(create_entities):
-    match_stats = MatchStats(create_entities)
-    match_stats.set_winner("a")
-    assert MatchStatsData == type(match_stats.get_stats())
+
     
 @pytest.mark.parametrize("text, size, x, y, display, color",[("auto", "b",
                             40, 550, pygame.surface.Surface([1000,1000]),
@@ -127,7 +110,7 @@ def test_draw_text_invalid_type():
 
 def test_draw_text_invalid_color():
     display = pygame.Surface((800, 600))
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidColorString):
         utilities.draw_text("Hello", 20, 400, 300, display, color="invalid_color")
 
 def test_get_image_valid_input():
