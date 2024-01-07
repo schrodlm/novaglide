@@ -18,7 +18,7 @@ pylint:
   - find ./src -name "*.py" | grep -v .src/tests/ | xargs pylint --disable=C0301,C0103
 
 tests:
-  stage: tests
+  stage: Test
   tags:
     - pytest
   script:
