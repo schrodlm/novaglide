@@ -63,10 +63,10 @@ cd src && python3 server.py
 ```
 
 ## Running Tests
-Execute tests from the root directory using:
+To run the tests localy navidate to the src directory and run the pytest command.
 
 ```
-# TODO: tady to doplň Tome
+cd src
 pytest
 ```
 
