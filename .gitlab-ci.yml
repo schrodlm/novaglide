@@ -15,4 +15,14 @@ stages:
 pylint:
   stage: Static Analysis
   script:
-  - pylint --disable=C0301,C0103 src/*.py
+  - find ./src -name "*.py" | grep -v .src/tests/ | xargs pylint --disable=C0301,C0103
+
+tests:
+  stage: Test
+  tags:
+    - pytest
+  script:
+    - cd src
+    - sudo -u nobody pytest 
+  only:
+    - src

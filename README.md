@@ -1,4 +1,4 @@
-# novaglide
+# Novaglide - an enhanced air hockey
 
 
 

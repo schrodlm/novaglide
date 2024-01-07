@@ -4,44 +4,12 @@ MatchStats Module
 
 Module for the MatchStatsData class, encapsulating match statistics and winner information in a game environment.
 """
-
-from typing import Dict
 import pygame
 
 from game_objects.ball import Ball
 from game_objects.player import Player
 
 # pylint: disable=too-few-public-methods
-class MatchStatsData:
-    """
-    Container class for match statistics data.
-
-    Attributes
-    ----------
-    stats : dict
-        A dictionary containing statistics for each entity in the match.
-    winner : str
-        The name of the winner entity.
-
-    Parameters
-    ----------
-    stats : dict
-        A dictionary containing statistics for each entity in the match.
-    winner : str
-        The name of the winner entity.
-
-    Raises
-    ------
-    TypeError
-        If stats or winner are of an incorrect type.
-    """
-    def __init__(self, stats: Dict, winner: str):
-        if not isinstance(stats, dict) or not isinstance(winner, str):
-            raise TypeError("Incorrect type of input parameters")
-        self.stats = stats
-        self.winner = winner
-
-
 class MatchStats:
     """
     Class for managing match statistics.
