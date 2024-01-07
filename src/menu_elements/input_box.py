@@ -124,6 +124,8 @@ class InputBox:
         InputBox
             The updated InputBox instance.
         """
+        if not isinstance(event, pygame.event.Event):
+            raise TypeError("Event must be a pygame event")
         if event.type == pygame.MOUSEBUTTONDOWN:
             # If the user clicked on the input_box rect.
             if self.rect.collidepoint(event.pos):

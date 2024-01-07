@@ -1,11 +1,43 @@
 import pygame
 from pygame.math import Vector2
 from configuration_mod import Config
+from typing import Dict
 # --------------------------BALL-----------------------------------
 
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, config: Config, server=False):
+    """
+    A class representing a ball in a game.
+
+    Attributes
+    ----------
+    config : Dict
+        A configuration of the game.
+    server : bool, optional
+        A boolean indicating whether the ball is handled by the server. Defaults to False.
+    radius : int
+        The radius of the ball.
+    x : float
+        The x-coordinate of the ball's center.
+    y : float
+        The y-coordinate of the ball's center.
+    rect : pygame.Rect
+        A rectangle representing the position and size of the ball.
+    image : pygame.Surface
+        A surface representing the visual appearance of the ball.
+    speed : Vector2
+        A vector representing the speed of the ball.
+
+    Methods
+    -------
+    update(borders: pygame.Rect)
+        Update the position and speed of the ball.
+    set_rect()
+        Set the rectangle representation of the ball based on its position and size.
+    check_and_handle_rebound(playfield_border: pygame.Rect)
+        Check and handle rebound when the ball collides with the playfield borders.
+    """
+    def __init__(self, config: Dict, server = False):
         pygame.sprite.Sprite.__init__(self)
         self.config = config
         # radius
@@ -27,7 +59,15 @@ class Ball(pygame.sprite.Sprite):
 
         self.speed = Vector2(0, 0)
 
-    def update(self, borders):
+    def update(self, borders: pygame.Rect):
+        """
+        Update the position and speed of the ball.
+
+        Parameters
+        ----------
+        borders : pygame.Rect
+            A rectangle representing the borders of the playfield.
+        """
         # updating position based on speed
         self.x += self.speed.x
         self.y += self.speed.y
@@ -38,10 +78,19 @@ class Ball(pygame.sprite.Sprite):
         self.setRect()
 
     def setRect(self):
+        """Set the rectangle representation of the ball based on its position and size."""
         self.rect = pygame.Rect(self.x - self.radius, self.y - self.radius,
                                 2 * self.radius, 2 * self.radius)
 
-    def checkAndHandleRebound(self, playfield_border):
+    def checkAndHandleRebound(self, playfield_border: pygame.Rect):
+        """
+        Check and handle rebound when the ball collides with the playfield borders.
+
+        Parameters
+        ----------
+        playfield_border : pygame.Rect
+            A rectangle representing the borders of the playfield.
+        """
      # Check collision with the left or right border
         if self.x - self.radius <= playfield_border.left:
             self.speed.x = -self.speed.x

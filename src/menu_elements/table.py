@@ -74,10 +74,32 @@ class Table(pygame.sprite.Sprite):
         Inserts data into the table and renders it on the display.
     """
 
-    def __init__(self, config: Dict, header: str = "", row_size: int = 32,
+    def __init__(self, config: Dict, cols_sizes: List[int],header: str = "", row_size: int = 32,
                  top_left_coords: Tuple[int, int] = (640, 50), font_size: int = 16,
-                 header_font_size: int = 25, n_rows: int = 10,
-                 cols_sizes: List[int] = None):
+                 header_font_size: int = 25, n_rows: int = 10,):
+        if not isinstance(config, dict):
+            raise TypeError("Config must be a dictionary.")
+        
+        if not isinstance(header, str):
+            raise TypeError("Header must be a string.")
+        
+        if not isinstance(row_size, int):
+            raise TypeError("Row size must be an integer.")
+        
+        if not isinstance(top_left_coords, tuple) or len(top_left_coords) != 2 or not all(isinstance(coord, int) for coord in top_left_coords):
+            raise TypeError("Top left coordinates must be a tuple of two integers.")
+        
+        if not isinstance(font_size, int):
+            raise TypeError("Font size must be an integer.")
+        
+        if not isinstance(header_font_size, int):
+            raise TypeError("Header font size must be an integer.")
+        
+        if not isinstance(n_rows, int):
+            raise TypeError("Number of rows must be an integer.")
+        
+        if (not isinstance(cols_sizes, list) or not all(isinstance(size, int) for size in cols_sizes)):
+            raise TypeError("Column sizes must be a list of integers.")
         # config, init sprite
         self.config = config
         super().__init__()
