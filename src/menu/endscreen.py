@@ -1,6 +1,5 @@
 import pygame
 from menu.menu import Menu
-from menu_elements.input_box import InputBox
 from menu_elements.button import Button
 import utilities
 import sys

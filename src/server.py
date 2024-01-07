@@ -51,9 +51,6 @@ class Server:
     read_client_message(message)
         Handles client messages and returns a response packet.
 
-    handle_playing()
-        Handles ongoing matches and removes completed ones.
-
     stream_match(message)
         Streams updates during a match to the clients.
 

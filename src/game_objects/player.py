@@ -280,6 +280,10 @@ class Player(pygame.sprite.Sprite):
             The display surface. None on the server side.
         
         """
+        if not isinstance(dt, float):
+            raise TypeError("Dt must be a float")
+        if display is not None and not isinstance(display, pygame.Surface):
+            raise TypeError("Display must be pyganme.Surface or None.")
         direction = self.hook_initial - self.hook_coords
         if display is None:
             self.hook_coords += 1200*dt*(direction.normalize())
@@ -303,6 +307,8 @@ class Player(pygame.sprite.Sprite):
         dt : float
             The time step.
         """
+        if not isinstance(dt, float):
+            raise TypeError("Dt must be a float")
         direction = self.hook_initial - self.coords_current
         self.coords_current += 1200*dt*(direction.normalize())
         self.x = self.coords_current.x
@@ -328,6 +334,8 @@ class Player(pygame.sprite.Sprite):
         Vector2
             The intersection point.
         """
+        if not isinstance(point_a, Vector2) or not isinstance(point_b, Vector2):
+            raise TypeError("Both points must be a Vector2.")
         # this method finds the point where vector between two points
         # intersects with the border
         t_1 = (-point_a.x)/(point_b.x - point_a.x)
@@ -394,6 +402,8 @@ class Player(pygame.sprite.Sprite):
         dt : float
             The time step.
         """
+        if not isinstance(dt, float):
+            raise TypeError("Dt must be a float")
         if self.dashed_already == 0:
             self.dash_started.x = self.x
             self.dash_started.y = self.y
@@ -426,6 +436,8 @@ class Player(pygame.sprite.Sprite):
         time : float
             The current time.
         """
+        if not isinstance(time, float):
+            raise TypeError("Time must be a float")
         if time - self.dash_cooldown_started > 10:
             self.dash_on_cooldown = False
         if time - self.hook_cooldown_started > 20:
