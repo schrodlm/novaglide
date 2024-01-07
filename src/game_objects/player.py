@@ -293,7 +293,7 @@ class Player(pygame.sprite.Sprite):
             The display surface. None on the server side.
 
         """
-        if not isinstance(dt, (float,int)):
+        if not isinstance(dt, (float, int)):
             raise TypeError("Dt must be a float")
         if display is not None and not isinstance(display, pygame.Surface):
             raise TypeError("Display must be pyganme.Surface or None.")
@@ -320,7 +320,7 @@ class Player(pygame.sprite.Sprite):
         dt : float
             The time step.
         """
-        if not isinstance(dt, (float,int)):
+        if not isinstance(dt, (float, int)):
             raise TypeError("Dt must be a float")
         direction = self.hook_initial - self.coords_current
         self.coords_current += 1200*dt*(direction.normalize())
